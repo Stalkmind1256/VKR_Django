@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Автоматизированная система учета и прдложений</title>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
+</head>
+<body>
+    <header class="navbar">
+        <div class="container">
+            <!-- Логотип и бренд -->
+            <a class="navbar-brand" href="#">АСУПредложений</a>
+            <!-- Кнопка для мобильного меню -->
+            <button class="navbar-toggler" onclick="toggleMenu()">☰</button>
+
+            <!-- Содержимое меню -->
+            <nav class="navbar-nav">
+                <ul>
+                    <li><a href="#" class="active">Главная</a></li>
+                    <li><a href="#">Предложения</a></li>
+                    <li><a href="#">Контакты</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <script>
+        // Функция для переключения видимости меню на мобильных устройствах
+        function toggleMenu() {
+            const menu = document.querySelector('.navbar-nav');
+            menu.classList.toggle('active');
+        }
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+</body>
+</html>

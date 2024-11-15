@@ -35,9 +35,9 @@ class Suggestion(models.Model):
         return self.title
 
 
-class Role(models.Model):
-    user = models.OneToOneField(User,on_delete=models.PROTECT)
-    role_name = models.CharField(max_length=50, choices=[('admin', 'Admin'), ('user', 'User')], default='user')
-
-    def __str__(self):
-        return f"{self.user.username} - {self.role_name}"
+# class Role(models.Model):
+#     user = models.OneToOneField(User,on_delete=models.PROTECT)
+#     role_name = models.CharField(max_length=50, choices=[('admin', 'Admin'), ('user', 'User')], default='user')
+#
+#     def __str__(self):
+#         return f"{self.user.username} - {self.role_name}"
