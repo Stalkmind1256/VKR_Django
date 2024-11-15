@@ -5,7 +5,7 @@ from fss.models import Status, Category, Suggestion
 class SuggestionCreateSerializer(ModelSerializer):
     class Meta:
         model = Suggestion
-        fields = ['title', 'description', 'category', 'status']
+        fields = ['title', 'description', 'category']
         extra_kwargs = {
             "title": {
                 "error_messages": {"required": "Укажите название.", "blank": "Пожалуйста, заполните поле названия."}
@@ -16,13 +16,10 @@ class SuggestionCreateSerializer(ModelSerializer):
             "category": {
                 "error_messages": {"required": "Укажите категорию.", "blank": "Пожалуйста, выберите категорию."}
             },
-            "status": {
-                "error_messages": {"required": "Укажите статус.", "blank": "Пожалуйста, выберите статус."}
-            },
         }
 
     def create(self, validated_data):
-        pending_status = Status.objects.get(status_name='pending')
+        pending_status = Status.objects.get(name='pending')
         user = self.context['request'].user
         suggestion = Suggestion.objects.create(
             user=user,

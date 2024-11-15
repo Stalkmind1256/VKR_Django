@@ -23,7 +23,7 @@ class Status(models.Model):
         ordering = ['name']  # Сортировка по алфавиту
 
     def __str__(self):
-        return self.get_name_display()  # Возвращает читаемое название статуса
+        return dict(self.STATUS_CHOICES).get(self.name, self.name)
 
 
 class Category(models.Model):
