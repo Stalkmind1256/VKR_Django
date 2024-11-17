@@ -1,0 +1,107 @@
+/* Сброс стилей по умолчанию */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Основной контейнер */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+}
+
+/* Шапка сайта */
+.navbar {
+    background-color: #f8f9fa;
+    padding: 10px 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Контейнер для навигационной панели */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Логотип */
+.navbar-brand {
+    font-size: 24px;
+    font-weight: bold;
+    color: #007bff;
+    text-decoration: none;
+}
+
+/* Навигационные ссылки */
+.navbar-nav ul {
+    list-style-type: none;
+    display: flex;
+}
+
+.navbar-nav li {
+    margin-left: 20px;
+}
+
+.navbar-nav a {
+    text-decoration: none;
+    color: #333;
+    font-size: 16px;
+    padding: 10px;
+    transition: color 0.3s;
+}
+
+.navbar-nav a:hover {
+    color: #007bff;
+}
+
+.navbar-nav .active {
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* Кнопка для мобильного меню */
+.navbar-toggler {
+    display: none;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px;
+    font-size: 24px;
+}
+
+/* Мобильный режим */
+@media (max-width: 768px) {
+    .navbar-nav {
+        display: none;
+        width: 100%;
+        text-align: center;
+    }
+
+    .navbar-nav.active {
+        display: block;
+    }
+
+    .navbar-nav ul {
+        display: block;
+    }
+
+    .navbar-nav li {
+        margin-left: 0;
+        margin-bottom: 10px;
+    }
+
+    .navbar-toggler {
+        display: block;
+    }
+}
+
+/* Контент страницы */
+.content {
+    padding: 20px;
+    text-align: center;
+}
