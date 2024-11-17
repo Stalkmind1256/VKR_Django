@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.utils.dateparse import parse_date
 from unicodedata import category
-from .models import Suggestion
+from .models import Suggestion, Category
 
 def suggestion_list(request):
     suggestions = Suggestion.objects.select_related('category', 'status').all()
