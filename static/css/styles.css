@@ -10,11 +10,12 @@ body {
     font-family: Arial, sans-serif;
     background-color: #f8f9fa;
     margin: 0;
+    overflow-x: hidden; /* Добавлено для предотвращения горизонтальной прокрутки */
 }
 
 /* Шапка сайта */
 .navbar {
-    background-color: #f8f9fa;
+    background-color: #28a745; /* Зеленый цвет */
     padding: 10px 0;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -27,13 +28,14 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%; /* Обеспечиваем, что контейнер занимает всю ширину */
 }
 
 /* Логотип */
 .navbar-brand {
     font-size: 24px;
     font-weight: bold;
-    color: #007bff;
+    color: #ffffff; /* Белый цвет для логотипа */
     text-decoration: none;
 }
 
@@ -49,26 +51,26 @@ body {
 
 .navbar-nav a {
     text-decoration: none;
-    color: #333;
+    color: #ffffff; /* Белый цвет для ссылок */
     font-size: 16px;
     padding: 10px;
     transition: color 0.3s;
 }
 
 .navbar-nav a:hover {
-    color: #007bff;
+    color: #f8f9fa; /* Светлый цвет для ссылки при наведении */
 }
 
 .navbar-nav .active {
     font-weight: bold;
-    color: #007bff;
+    color: #f8f9fa; /* Белый цвет для активной ссылки */
 }
 
 /* Кнопка для мобильного меню */
 .navbar-toggler {
     display: none;
-    background-color: #007bff;
-    color: white;
+    background-color: #ffffff; /* Белая кнопка для мобильного меню */
+    color: #28a745; /* Зеленый цвет для иконки кнопки */
     border: none;
     padding: 10px;
     font-size: 24px;
@@ -104,4 +106,19 @@ body {
 .content {
     padding: 20px;
     text-align: center;
+}
+
+/* Контейнер для текста на мобильных устройствах */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 10px; /* Уменьшаем отступы в контейнере для мобильных устройств */
+    }
+
+    .navbar-brand {
+        font-size: 18px; /* Меньший размер шрифта для мобильных устройств */
+    }
+
+    .navbar-nav a {
+        font-size: 14px; /* Меньший размер шрифта для ссылок на мобильных устройствах */
+    }
 }
