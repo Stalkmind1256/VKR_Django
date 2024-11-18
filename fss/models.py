@@ -2,10 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+#Статусы
 class Status(models.Model):
-    """
-    Модель для статусов предложений.
-    """
+
     STATUS_CHOICES = [
         ('pending', 'В ожидании'),
         ('approved', 'Одобрено'),
@@ -25,7 +24,7 @@ class Status(models.Model):
     def __str__(self):
         return dict(self.STATUS_CHOICES).get(self.name, self.name)
 
-
+#Категории
 class Category(models.Model):
     """
     Модель для категорий предложений.
@@ -48,7 +47,7 @@ class Category(models.Model):
     def __str__(self):
         return self.get_name_display()  # Возвращает читаемое название категории
 
-
+#Предложения
 class Suggestion(models.Model):
     user = models.ForeignKey(
         User,

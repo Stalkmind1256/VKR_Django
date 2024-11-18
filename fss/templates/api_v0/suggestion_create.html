@@ -60,11 +60,11 @@
         <textarea id="description" name="description" rows="4" required></textarea>
 
         <label for="category">Категория:</label>
-        <select id="category" name="category" required>
-            {% for value, name in categories %}
-                <option value="{{ value }}">{{ name }}</option>
-            {% endfor %}
-        </select>
+    <select id="category" name="category" required>
+        {% for category in categories %}
+            <option value="{{ category.id }}">{{ category.get_name_display }}</option>
+        {% endfor %}
+    </select>
 
         <button type="submit">Отправить предложение</button>
     </form>
