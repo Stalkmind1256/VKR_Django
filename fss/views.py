@@ -34,6 +34,9 @@ def suggestion_detail(request, pk):
     suggestion = get_object_or_404(Suggestion, pk=pk)
     return render(request, 'fss/suggestion_detail.html', {'suggestion': suggestion})
 
+def home(request):
+    return render(request, 'fss/home.html')
+
 # def suggestion_create(request):
 #     categories = Category.objects.all()
 #     return render(request,'api_v0/suggestion_create.html',{'categories': categories})
