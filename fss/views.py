@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.utils.dateparse import parse_date
-
 from .models import Category
 from .models import Suggestion
+
 
 def suggestion_list(request):
     suggestions = Suggestion.objects.select_related('category', 'status').all()
@@ -37,6 +37,9 @@ def suggestion_detail(request, pk):
 def home(request):
     return render(request, 'fss/home.html')
 
+def password_reset(request):
+    return render(request, 'registration/password_reset.html')
 # def suggestion_create(request):
 #     categories = Category.objects.all()
 #     return render(request,'api_v0/suggestion_create.html',{'categories': categories})
+

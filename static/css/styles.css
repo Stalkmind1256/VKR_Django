@@ -25,5 +25,85 @@
   font-weight: bold;
 }
 .navbar-brand{
-padding-top:15px;
+padding-top: 15px;
+}
+/*Login*/
+/* Выровнять контейнер по центру экрана */
+.container_form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Карточка формы */
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Лэйблы и поля на одной линии */
+.form-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    flex: 0 0 30%; /* Задает фиксированную ширину для лэйблов */
+    text-align: right; /* Выравнивает текст справа */
+    margin-right: 15px;
+    font-weight: bold;
+    color: #495057;
+}
+
+.form-group input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* Чекбокс "Запомнить меня" */
+.form-check {
+    display: flex;
+    align-items: center;
+}
+
+.form-check input {
+    margin-right: 10px;
+}
+
+.form-check label {
+    font-size: 14px;
+    color: #495057;
+}
+
+/* Кнопка входа */
+button[type="submit"] {
+    background-color: #28a745;
+    border: none;
+    padding: 10px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffffff;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #218838;
+}
+
+/* Ссылка "Забыли пароль?" */
+a.text-decoration-none {
+    font-size: 14px;
+    color: #28a745;
+    transition: color 0.3s ease;
+}
+
+a.text-decoration-none:hover {
+    color: #218838;
+    text-decoration: underline;
 }
