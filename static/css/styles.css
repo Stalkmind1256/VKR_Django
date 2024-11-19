@@ -1,124 +1,29 @@
-/* Сброс стилей по умолчанию */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/*Навигация*/
+.navbar.bg-dark {
+    background-color: #28a745 !important;
+    border-bottom: 2px solid #218838;
+}
+.navbar .navbar-brand,
+.navbar .nav-link {
+    color: #ffffff !important;
+}
+.navbar .nav-link:hover {
+    color: #d4edda !important;
+}
+.navbar-nav {
+  display: flex;
+  padding-left: 0;
+  margin-bottom: 0;
 }
 
-/* Основной контейнер */
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f8f9fa;
-    margin: 0;
-    overflow-x: hidden; /* Добавлено для предотвращения горизонтальной прокрутки */
+.nav-item {
+  margin-right: 20px;
 }
 
-/* Шапка сайта */
-.navbar {
-    background-color: #28a745; /* Зеленый цвет */
-    padding: 10px 0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+.nav-link.active {
+  font-weight: bold;
 }
-
-/* Контейнер для навигационной панели */
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%; /* Обеспечиваем, что контейнер занимает всю ширину */
-}
-
-/* Логотип */
-.navbar-brand {
-    font-size: 24px;
-    font-weight: bold;
-    color: #ffffff; /* Белый цвет для логотипа */
-    text-decoration: none;
-}
-
-/* Навигационные ссылки */
-.navbar-nav ul {
-    list-style-type: none;
-    display: flex;
-}
-
-.navbar-nav li {
-    margin-left: 20px;
-}
-
-.navbar-nav a {
-    text-decoration: none;
-    color: #ffffff; /* Белый цвет для ссылок */
-    font-size: 16px;
-    padding: 10px;
-    transition: color 0.3s;
-}
-
-.navbar-nav a:hover {
-    color: #f8f9fa; /* Светлый цвет для ссылки при наведении */
-}
-
-.navbar-nav .active {
-    font-weight: bold;
-    color: #f8f9fa; /* Белый цвет для активной ссылки */
-}
-
-/* Кнопка для мобильного меню */
-.navbar-toggler {
-    display: none;
-    background-color: #ffffff; /* Белая кнопка для мобильного меню */
-    color: #28a745; /* Зеленый цвет для иконки кнопки */
-    border: none;
-    padding: 10px;
-    font-size: 24px;
-}
-
-/* Мобильный режим */
-@media (max-width: 768px) {
-    .navbar-nav {
-        display: none;
-        width: 100%;
-        text-align: center;
-    }
-
-    .navbar-nav.active {
-        display: block;
-    }
-
-    .navbar-nav ul {
-        display: block;
-    }
-
-    .navbar-nav li {
-        margin-left: 0;
-        margin-bottom: 10px;
-    }
-
-    .navbar-toggler {
-        display: block;
-    }
-}
-
-/* Контент страницы */
-.content {
-    padding: 20px;
-    text-align: center;
-}
-
-/* Контейнер для текста на мобильных устройствах */
-@media (max-width: 768px) {
-    .container {
-        padding: 0 10px; /* Уменьшаем отступы в контейнере для мобильных устройств */
-    }
-
-    .navbar-brand {
-        font-size: 18px; /* Меньший размер шрифта для мобильных устройств */
-    }
-
-    .navbar-nav a {
-        font-size: 14px; /* Меньший размер шрифта для ссылок на мобильных устройствах */
-    }
+.navbar-brand{
+padding-top:15px;
 }

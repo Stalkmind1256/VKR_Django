@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'fss',
     'rest_framework',
     'api_v0',
+    'django_bootstrap5',
 ]
 
 MIDDLEWARE = [

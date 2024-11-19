@@ -1,29 +1,21 @@
 {% extends 'fss/base.html' %}
 {% load static %}
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Главная страница</title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-</head>
-<body>
 
-    <!-- Основной контент -->
+
 {% block content %}
     <h1>Добро пожаловать на главную страницу!</h1>
     <p>Здесь будет информация о системе.</p>
-    <div class="navbar">
-        {% if user.is_authenticated %}
-          <a class="nav-item nav-link active" href="{% url 'logout' %}">Выйти <span class="sr-only">{{ user.username }}</span></a>
-        {% else %}
-          <a class="nav-item nav-link active" href="{% url 'login' %}">Войти</a>
-        {% endif %}
-    </div>
+     {% if user.is_authenticated %}
+        <a href="#">Logout</a>
+     {% else %}
+     <a href="#">Login</a>
+    {% endif %}
+    {% if messages %}
+        <ul class="message">
+            {% for message in messages %}
+                <li class="alert {{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+ {% endif %}
 {% endblock %}
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-
-</body>
-</html>
