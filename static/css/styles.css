@@ -19,7 +19,10 @@
 .nav-item {
   margin-right: 20px;
 }
-
+.navbar-text{
+    font-size: 25px;
+    color: white;
+}
 
 .nav-link.active {
   font-weight: bold;

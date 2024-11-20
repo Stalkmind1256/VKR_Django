@@ -9,7 +9,7 @@ def redirect_home(request):
 
 urlpatterns = [
     path('', redirect_home),
-    path('home', views.home, name='home'),
+    path('home/', views.home, name='home'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('login/', auth_views.LoginView.as_view(), name='login'),
     path('list/', views.suggestion_list, name='suggestion_list'),
