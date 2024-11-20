@@ -9,6 +9,16 @@
 }
 .navbar .nav-link:hover {
     color: #d4edda !important;
+        background-color: rgba(255, 255, 255, 0.1);
+}
+.navbar-nav .nav-link.active {
+    color: white !important; /* Цвет активной ссылки */
+}
+.navbar-nav .navbar-text {
+    color: white; /* Цвет текста пользователя */
+}
+.navbar-nav .nav-link {
+    transition: background-color 0.3s ease, color 0.3s ease; /* Плавный переход при наведении */
 }
 .navbar-nav {
   display: flex;
@@ -30,6 +40,19 @@
 .navbar-brand{
 padding-top: 15px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*Login*/
 /* Выровнять контейнер по центру экрана */
 .container_form {
@@ -109,4 +132,39 @@ a.text-decoration-none {
 a.text-decoration-none:hover {
     color: #218838;
     text-decoration: underline;
+}
+
+
+
+
+/* Стили для квадратной формы */
+.square-form {
+    border: 2px solid #ccc;
+    border-radius: 10px;  /* Скругление углов */
+    padding: 20px;  /* Отступы внутри формы */
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);  /* Легкая тень */
+}
+
+.square-form .form-control, .square-form .form-select, .square-form textarea {
+    border-radius: 8px;  /* Скругление полей ввода */
+    margin-bottom: 15px;  /* Отступы между полями */
+}
+
+.square-form .btn {
+    width: 100%;  /* Кнопка на всю ширину */
+    border-radius: 8px;  /* Скругление кнопки */
+    padding: 12px;  /* Увеличиваем размер кнопки */
+}
+
+.square-form .invalid-feedback {
+    font-size: 0.9rem;
+    color: #dc3545;  /* Цвет ошибки */
+}
+
+/* Адаптивность */
+@media (max-width: 767px) {
+    .square-form {
+        padding: 15px;  /* Меньше отступов на мобильных устройствах */
+    }
 }

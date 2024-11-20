@@ -1,9 +1,9 @@
 {% extends 'fss/base.html' %}
 
 {% block content %}
-<h1 class="mt-4 mb-4">Подача предложения</h1>
+<h1 class="mt-5 mb-5 text-center">Подача предложения</h1>
 
-<form id="suggestionForm" method="POST" class="needs-validation" novalidate>
+<form id="suggestionForm" method="POST" class="needs-validation square-form" novalidate>
     {% csrf_token %}
     <div class="mb-3">
         <label for="title" class="form-label">Заголовок предложения</label>
@@ -20,8 +20,8 @@
     <div class="mb-3">
         <label for="category" class="form-label">Категория</label>
         <select class="form-select" id="category" name="category" required>
-            {% for category in categories %}-->
-        <option value="{{ category.id }}">{{ category.get_name_display }}</option>-->
+            {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.get_name_display }}</option>
             {% endfor %}
         </select>
         <div class="invalid-feedback">Пожалуйста, выберите категорию.</div>
