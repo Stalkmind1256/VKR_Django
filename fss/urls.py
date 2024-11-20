@@ -7,6 +7,7 @@ from django.shortcuts import redirect
 def redirect_home(request):
     return redirect('/home')
 
+
 urlpatterns = [
     path('', redirect_home),
     path('home/', views.home, name='home'),
@@ -16,4 +17,5 @@ urlpatterns = [
     # path('suggestions/', views.suggestion_create, name='suggestion_create'),
     path('suggestion/<int:pk>/', views.suggestion_detail, name='suggestion_detail'),
     path('suggest/', views.suggestion_form, name='suggestion_form'),
+    path('register/', views.register, name='register'),
 ]
