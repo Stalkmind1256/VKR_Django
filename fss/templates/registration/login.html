@@ -3,7 +3,8 @@
 {% block content %}
 <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
     <div class="card p-4 shadow-lg" style="max-width: 400px; width: 100%;">
-        <h2 class="text-center mb-4">Войти в систему</h2>
+        <h2 class="text-center mb-4">Добро пожаловать</h2>
+        <h5 class="text-center mb-4">Пожалуйста, введите ваш логин и пароль для входа в систему:</h5>
         <form method="post">
             {% csrf_token %}
             {{ form.non_field_errors }}

@@ -168,3 +168,11 @@ a.text-decoration-none:hover {
         padding: 15px;  /* Меньше отступов на мобильных устройствах */
     }
 }
+
+
+    select.form-select {
+        font-size: 1.2rem; /* Увеличиваем шрифт для выпадающего списка */
+    }
+    select.form-select option {
+        font-size: 1.2rem; /* Увеличиваем шрифт для опций */
+    }
