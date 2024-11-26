@@ -5,6 +5,8 @@ from .models import Suggestion
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 
 def suggestion_list(request):
     suggestions = Suggestion.objects.select_related('category', 'status').all()
@@ -25,6 +27,16 @@ def suggestion_list(request):
         suggestions = suggestions.filter(date_create__gte=parse_date(start_date))
     if end_date:
         suggestions = suggestions.filter(date_create__lte=parse_date(end_date))
+
+    paginator = Paginator(suggestions, 20)  # По 20 элементов на страницу
+    page = request.GET.get('page')
+
+    try:
+        suggestions = paginator.page(page)
+    except PageNotAnInteger:
+        suggestions = paginator.page(1)
+    except EmptyPage:
+        suggestions = paginator.page(paginator.num_pages)
 
     return render(request, 'fss/suggestion_list.html', {'suggestions': suggestions})
 

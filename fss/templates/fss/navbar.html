@@ -22,7 +22,11 @@
                   <a class="nav-link" href="#">Контакты</a>
               </li>
 
-
+              {% if user.is_superuser %}
+              <li class="nav-item">
+                   <a class="nav-link" href="/list">Просмотр базы</a>
+              </li>
+              {% endif %}
 
           </ul>
 

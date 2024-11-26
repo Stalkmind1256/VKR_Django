@@ -167,3 +167,17 @@ a.text-decoration-none:hover {
         font-size: 1.2rem; /* Увеличиваем шрифт для опций */
     }
 
+/*Пагинация*/
+.pagination-green .page-link {
+    color: #28a745; /* Зеленый текст */
+}
+
+.pagination-green .page-link:hover {
+    background-color: #28a745; /* Зеленый фон при наведении */
+    color: white; /* Белый текст */
+}
+
+.pagination-green .active .page-link {
+    background-color: #28a745; /* Зеленый фон для активной страницы */
+    color: white; /* Белый текст */
+}
