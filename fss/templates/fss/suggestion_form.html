@@ -6,6 +6,7 @@
 <div class="container">
     <form id="suggestionForm" method="POST" class="needs-validation square-form mx-auto" style="max-width: 500px;" novalidate>
         {% csrf_token %}
+
         <div class="mb-3">
             <label for="title" class="form-label">Заголовок предложения</label>
             <input type="text" class="form-control" id="title" name="title" required>
@@ -28,8 +29,20 @@
             <div class="invalid-feedback">Пожалуйста, выберите категорию.</div>
         </div>
 
+        <!-- Добавление поля для выбора подразделения -->
+        <div class="mb-3">
+            <label for="division" class="form-label">Подразделение</label>
+            <select class="form-select" id="division" name="division" required>
+                {% for division in divisions %}
+                    <option value="{{ division.id }}">{{ division.get_name_display }}</option>
+                {% endfor %}
+            </select>
+            <div class="invalid-feedback">Пожалуйста, выберите подразделение.</div>
+        </div>
+
         <button type="submit" class="btn btn-primary w-100">Отправить предложение</button>
     </form>
+
     <div class="message text-center mt-3" id="responseMessage"></div>
 </div>
 
@@ -43,6 +56,7 @@
             const title = $('#title').val();
             const description = $('#description').val();
             const category = $('#category').val();  // Получаем категорию из формы
+            const division = $('#division').val();  // Получаем подразделение из формы
 
             // Отправляем данные через AJAX на API
             $.ajax({
@@ -56,6 +70,7 @@
                     title: title,
                     description: description,
                     category: category,
+                    division: division,  // Отправляем выбранное подразделение
                 }),
                 success: function(response) {
                     // Если запрос успешен, показываем сообщение

@@ -1,11 +1,13 @@
 from django.shortcuts import render, get_object_or_404,redirect
 from django.utils.dateparse import parse_date
-from .models import Category
+from .models import Category, Divisions
 from .models import Suggestion
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+
 
 
 def suggestion_list(request):
@@ -42,7 +44,8 @@ def suggestion_list(request):
 
 def suggestion_form(request):
     categories = Category.objects.all()
-    return render(request,'fss/suggestion_form.html',{'categories': categories})
+    divisions = Divisions.objects.all()
+    return render(request,'fss/suggestion_form.html',{'categories': categories, 'divisions':divisions})
 
 def suggestion_detail(request, pk):
     suggestion = get_object_or_404(Suggestion, pk=pk)
@@ -69,5 +72,6 @@ def register(request):
         form = UserCreationForm()
 
     return render(request, 'registration/register.html', {'form': form})
+
 
 

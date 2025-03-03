@@ -47,6 +47,31 @@ class Category(models.Model):
     def __str__(self):
         return self.get_name_display()  # Возвращает читаемое название категории
 
+
+#Структруные подразделения
+class Divisions(models.Model):
+    DIVISIONS_CHOICES = [
+        ('technopark', 'Технопарк'),
+        ('deanery', 'Деканат'),
+        ('rectorate', 'Ректорат'),
+        ('uvc', 'Учебно-вычислительный центр (УВЦ)'),
+    ]
+
+    name = models.CharField(
+        max_length=100,
+        choices=DIVISIONS_CHOICES,
+        unique=True,
+        verbose_name="Название подразделения"
+    )
+
+    class Meta:
+        verbose_name = "Подразделение"
+        verbose_name_plural = "Подразделения"
+        ordering = ["name"]  # Сортировка по алфавиту
+
+    def __str__(self):
+        return self.get_name_display()
+
 #Предложения
 class Suggestion(models.Model):
     user = models.ForeignKey(
@@ -77,6 +102,14 @@ class Suggestion(models.Model):
         related_name='suggestions',
         verbose_name='Статус',
     )
+    division = models.ForeignKey(
+        'Divisions',  # Связь с моделью Divisions
+        on_delete=models.PROTECT,
+        null=True,
+        related_name='suggestions',  # Позволяет получить все предложения для определенного подразделения
+        verbose_name='Подразделение',  # Подразделение, к которому относится предложение
+    )
+
     date_create = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Дата создания',

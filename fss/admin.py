@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 
-from .models import Status, Category, Suggestion
+from .models import Status, Category, Suggestion, Divisions
 
 
 @admin.register(Category)
@@ -30,6 +30,18 @@ class SuggestionAdmin(ModelAdmin):
 class StatusAdmin(ModelAdmin):
     list_display = ('id', 'name')
     readonly_fields = ('id',)
+    fieldsets = (
+        ('Основная информация', {
+            'fields': ('name',)
+        }),
+    )
+
+
+@admin.register(Divisions)
+class DivisionAdmin(ModelAdmin):
+    list_display = ('id', 'name')  # Отображаем id и имя подразделения
+    readonly_fields = ('id',)  # Поле id только для чтения
+    search_fields = ('name',)  # Добавляем поиск по названию подразделения
     fieldsets = (
         ('Основная информация', {
             'fields': ('name',)
