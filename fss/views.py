@@ -118,3 +118,8 @@ def add_comment(request, suggestion_id):
         'comments': suggestion.comments.all(),
         'form': form,  # Передаем форму в шаблон
     })
+
+@login_required
+def user_suggestions(request):
+    suggestions = Suggestion.objects.all()
+    return render(request, 'fss/user_suggestions.html', {'suggestions': suggestions})

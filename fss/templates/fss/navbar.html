@@ -3,7 +3,7 @@
   <div class="container">
       <a class="navbar-brand d-flex align-items-center" href="/home">
 <!--          <img src="{% static 'images/logo.jpg' %}" alt="Логотип" class="me-2" style="height: 80px;">-->
-          АС учета и предложений
+          Автоматизированная система учета и предложений
       </a>
 
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,6 +20,9 @@
               </li>
               <li class="nav-item">
                   <a class="nav-link" href="#">Контакты</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link" href="{% url 'user_suggestions' %}">Мои предложения</a>
               </li>
 
               {% if user.is_superuser %}
