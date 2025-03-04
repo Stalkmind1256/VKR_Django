@@ -1,0 +1,37 @@
+{% extends 'fss/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>{{ suggestion.title }}</h2>
+    <p>{{ suggestion.description }}</p>
+    <hr>
+
+    <!-- Секция комментариев -->
+    <h4>Комментарии</h4>
+
+    <div class="mb-4">
+        {% if request.user.is_authenticated %}
+            <form method="post" action="{% url 'add_comment' suggestion.id %}">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary">Оставить комментарий</button>
+            </form>
+        {% else %}
+            <p><a href="{% url 'login' %}">Войдите</a>, чтобы оставить комментарий.</p>
+        {% endif %}
+    </div>
+
+    <div class="comments">
+        {% for comment in comments %}
+            <div class="card mb-2">
+                <div class="card-body">
+                    <p><strong>{{ comment.user.username }}</strong> — {{ comment.created_at|date:"d M Y H:i" }}</p>
+                    <p>{{ comment.text }}</p>
+                </div>
+            </div>
+        {% empty %}
+            <p>Комментариев пока нет.</p>
+        {% endfor %}
+    </div>
+</div>  
+{% endblock %}

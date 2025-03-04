@@ -72,6 +72,8 @@ class Divisions(models.Model):
     def __str__(self):
         return self.get_name_display()
 
+
+
 #Предложения
 class Suggestion(models.Model):
     user = models.ForeignKey(
@@ -122,6 +124,18 @@ class Suggestion(models.Model):
 
     def __str__(self):
         return self.title
+
+
+
+class Comment(models.Model):
+    suggestion = models.ForeignKey(Suggestion, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Комментарий от {self.user.username} к {self.suggestion.title}"
+
 
 # class Role(models.Model):
 #     user = models.OneToOneField(User, on_delete=models.PROTECT)

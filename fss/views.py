@@ -4,11 +4,26 @@ from .models import Category, Divisions
 from .models import Suggestion
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
-
+from .forms import CommentForm
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.auth.decorators import login_required
 
-
-
+# @login_required
+# def add_comment(request, suggestion_id):
+#     suggestion = get_object_or_404(Suggestion, id=suggestion_id)
+#
+#     if request.method == "POST":
+#         form = CommentForm(request.POST)
+#         if form.is_valid():
+#             comment = form.save(commit=False)
+#             comment.suggestion = suggestion
+#             comment.author = request.user
+#             comment.save()
+#             return redirect('suggestion_detail', suggestion_id=suggestion.id)
+#     else:
+#         form = CommentForm()
+#
+#     return render(request, 'fss/add_comment.html', {'form': form, 'suggestion': suggestion})
 
 def suggestion_list(request):
     suggestions = Suggestion.objects.select_related('category', 'status').all()
@@ -49,7 +64,14 @@ def suggestion_form(request):
 
 def suggestion_detail(request, pk):
     suggestion = get_object_or_404(Suggestion, pk=pk)
-    return render(request, 'fss/suggestion_detail.html', {'suggestion': suggestion})
+    comments = suggestion.comments.all()
+    form = CommentForm()  # Добавляем форму комментариев
+
+    return render(request, 'fss/suggestion_detail.html', {
+        'suggestion': suggestion,
+        'comments': comments,
+        'form': form,  # Передаем форму в шаблон
+    })
 
 def home(request):
     return render(request, 'fss/home.html')
@@ -74,4 +96,25 @@ def register(request):
     return render(request, 'registration/register.html', {'form': form})
 
 
+@login_required
+def add_comment(request, suggestion_id):
+    suggestion = get_object_or_404(Suggestion, id=suggestion_id)
 
+    # Если POST-запрос, обрабатываем форму
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.suggestion = suggestion
+            comment.user = request.user
+            comment.save()
+            return redirect('suggestion_detail', pk=suggestion.id)
+    else:
+        form = CommentForm()
+
+    # Передаем форму в шаблон
+    return render(request, 'fss/suggestion_detail.html', {
+        'suggestion': suggestion,
+        'comments': suggestion.comments.all(),
+        'form': form,  # Передаем форму в шаблон
+    })

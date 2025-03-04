@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from .models import Comment
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -32,3 +33,15 @@ class LoginForm(forms.Form):
         }),
         label="Запомнить меня"
     )
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ('text',)
+        widgets = {
+            'text': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Оставьте комментарий...'
+            })
+        }

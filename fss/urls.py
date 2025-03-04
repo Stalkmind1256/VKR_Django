@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
 from django.shortcuts import redirect
+from .views import suggestion_detail
 
 
 def redirect_home(request):
@@ -18,4 +19,7 @@ urlpatterns = [
     path('suggestion/<int:pk>/', views.suggestion_detail, name='suggestion_detail'),
     path('suggest/', views.suggestion_form, name='suggestion_form'),
     path('register/', views.register, name='register'),
+
+    # path('suggestion/<int:suggestion_id>/', views.suggestion_detail, name='suggestion_detail'),
+    path('suggestion/<int:suggestion_id>/comment/', views.add_comment, name='add_comment'),
 ]
