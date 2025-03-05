@@ -1,122 +1,115 @@
 {% extends 'fss/base.html' %}
 
 {% block content %}
-    <h1 class="mt-4 mb-4">Список предложений</h1>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Боковая панель -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+                <div class="position-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item"><a class="nav-link active" href="#">Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#">Пользователи</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#">Жалобы</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#">Настройки</a></li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <h2 class="mt-4 text-primary">Панель модератора</h2>
+                
+                <!-- Фильтр предложений -->
+                <div class="card shadow-sm p-4 mb-4">
+                    <h4 class="mb-3">Фильтр предложений</h4>
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="category" class="form-label">Категория</label>
+                            <select name="category" id="category" class="form-select">
+                                <option value="">Все категории</option>
+                                <option value="technology" {% if request.GET.category == "technology" %}selected{% endif %}>Технологии</option>
+                                <option value="education" {% if request.GET.category == "education" %}selected{% endif %}>Образование</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="status" class="form-label">Статус</label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="">Все статусы</option>
+                                <option value="pending" {% if request.GET.status == "pending" %}selected{% endif %}>Ожидает</option>
+                                <option value="approved" {% if request.GET.status == "approved" %}selected{% endif %}>Одобрено</option>
+                                <option value="rejected" {% if request.GET.status == "rejected" %}selected{% endif %}>Отклонено</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="start_date" class="form-label">Начальная дата</label>
+                            <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request.GET.start_date }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="end_date" class="form-label">Конечная дата</label>
+                            <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request.GET.end_date }}">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-primary">Применить фильтры</button>
+                        </div>
+                    </form>
+                </div>
 
-    <div class="row mb-3">
-        <div class="col-md-4">
-            <form method="get">
-                <div class="mb-3">
-                    <label for="category" class="form-label">Категория</label>
-                    <select name="category" id="category" class="form-select">
-                        <option value="">Все категории</option>
-                        <option value="technology" {% if request.GET.category == "technology" %}selected{% endif %}>Технологии</option>
-                        <option value="education" {% if request.GET.category == "education" %}selected{% endif %}>Образование</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="status" class="form-label">Статус</label>
-                    <select name="status" id="status" class="form-select">
-                        <option value="">Все статусы</option>
-                        <option value="pending" {% if request.GET.status == "pending" %}selected{% endif %}>Ожидает</option>
-                        <option value="approved" {% if request.GET.status == "approved" %}selected{% endif %}>Одобрено</option>
-                        <option value="rejected" {% if request.GET.status == "rejected" %}selected{% endif %}>Отклонено</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="start_date" class="form-label">Начальная дата</label>
-                    <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request.GET.start_date }}">
+                <!-- Таблица модерации контента -->
+                <div class="card shadow-sm p-4">
+                    <h4 class="mb-3">Список предложений</h4>
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Пользователь</th>
+                                <th>Контент</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for suggestion in suggestions %}
+                            <tr>
+                                <td>{{ suggestion.id }}</td>
+                                <td>{{ suggestion.user.username }}</td>
+                                <td>{{ suggestion.title }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if suggestion.status.status_name == 'approved' %}bg-success
+                                        {% elif suggestion.status.status_name == 'rejected' %}bg-danger
+                                        {% else %}bg-warning
+                                        {% endif %}">
+                                        {{ suggestion.status.status_name|capfirst }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-info btn-sm">Подробнее</a>
+                                    <button class="btn btn-success btn-sm">Принять</button>
+                                    <button class="btn btn-danger btn-sm">Отклонить</button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">Нет предложений для отображения.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
 
-                <div class="mb-3">
-                    <label for="end_date" class="form-label">Конечная дата</label>
-                    <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request.GET.end_date }}">
-                </div>
-                <button type="submit" class="btn btn-primary">Применить фильтры</button>
-            </form>
+                <!-- Форма блокировки пользователей -->
+                <h2 class="mt-4">Блокировка пользователей</h2>
+                <form>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Имя пользователя</label>
+                        <input type="text" class="form-control" id="username" placeholder="Введите имя">
+                    </div>
+                    <div class="mb-3">
+                        <label for="reason" class="form-label">Причина блокировки</label>
+                        <input type="text" class="form-control" id="reason" placeholder="Введите причину">
+                    </div>
+                    <button type="submit" class="btn btn-danger">Заблокировать</button>
+                </form>
+            </main>
         </div>
     </div>
-
-    <!-- Таблица предложений -->
-    <table class="table table-bordered table-hover">
-        <thead>
-            <tr>
-                <th scope="col">Заголовок</th>
-                <th scope="col">Категория</th>
-                <th scope="col">Статус</th>
-                <th scope="col">Дата</th>
-                <th scope="col">Действия</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for suggestion in suggestions %}
-            <tr>
-                <td>{{ suggestion.title }}</td>
-                <td>{{ suggestion.category.get_name_display }}</td>
-                <td>
-                    <span class="badge
-                        {% if suggestion.status.status_name == 'approved' %}
-                            bg-success
-                        {% elif suggestion.status.status_name == 'rejected' %}
-                            bg-danger
-                        {% else %}
-                            bg-warning
-                        {% endif %}">
-                        {{ suggestion.status.status_name|capfirst }}
-                    </span>
-                </td>
-                <td>{{ suggestion.date_create }}</td>
-                <td>
-                    <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-info btn-sm">Подробнее</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5">Нет предложений для отображения.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-   <nav aria-label="Пагинация">
-    <ul class="pagination justify-content-center pagination-green">
-        {% if suggestions.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ suggestions.previous_page_number }}" aria-label="Предыдущая">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
-            </li>
-        {% else %}
-            <li class="page-item disabled">
-                <span class="page-link">&laquo;</span>
-            </li>
-        {% endif %}
-
-        {% for num in suggestions.paginator.page_range %}
-            {% if suggestions.number == num %}
-                <li class="page-item active">
-                    <span class="page-link">{{ num }}</span>
-                </li>
-            {% else %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                </li>
-            {% endif %}
-        {% endfor %}
-
-        {% if suggestions.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ suggestions.next_page_number }}" aria-label="Следующая">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
-            </li>
-        {% else %}
-            <li class="page-item disabled">
-                <span class="page-link">&raquo;</span>
-            </li>
-        {% endif %}
-    </ul>
-</nav>
-
-
 {% endblock %}
