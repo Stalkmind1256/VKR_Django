@@ -2,36 +2,67 @@
 
 {% block content %}
 <div class="container">
-    <h2>{{ suggestion.title }}</h2>
-    <p>{{ suggestion.description }}</p>
+    <h2 class="mb-3">{{ suggestion.title }}</h2>
+    <p class="text-muted">{{ suggestion.description }}</p>
     <hr>
 
     <!-- Секция комментариев -->
-    <h4>Комментарии</h4>
+    <h4 class="mb-3">Комментарии</h4>
 
     <div class="mb-4">
         {% if request.user.is_authenticated %}
             <form method="post" action="{% url 'add_comment' suggestion.id %}">
                 {% csrf_token %}
                 {{ form.as_p }}
-                <button type="submit" class="btn btn-primary">Оставить комментарий</button>
+                <button type="submit" class="btn btn-sm btn-primary">Оставить комментарий</button>
             </form>
         {% else %}
-            <p><a href="{% url 'login' %}">Войдите</a>, чтобы оставить комментарий.</p>
+            <p><a href="{% url 'login' %}" class="text-decoration-none">Войдите</a>, чтобы оставить комментарий.</p>
         {% endif %}
     </div>
 
     <div class="comments">
         {% for comment in comments %}
-            <div class="card mb-2">
-                <div class="card-body">
-                    <p><strong>{{ comment.user.username }}</strong> — {{ comment.created_at|date:"d M Y H:i" }}</p>
-                    <p>{{ comment.text }}</p>
+            <div class="card shadow-sm mb-2">
+                <div class="card-body p-2">
+                    <p class="small text-muted mb-1">
+                        <strong>{{ comment.user.username }}</strong> — {{ comment.created_at|date:"d M Y H:i" }}
+                    </p>
+                    <p class="small">{{ comment.text }}</p>
                 </div>
             </div>
         {% empty %}
-            <p>Комментариев пока нет.</p>
+            <p class="text-muted">Комментариев пока нет.</p>
         {% endfor %}
     </div>
+
+    <!-- Пагинация -->
+    {% if comments.has_other_pages %}
+        <nav>
+            <ul class="pagination justify-content-center mt-3">
+                {% if comments.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">&laquo; Первая</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ comments.previous_page_number }}">‹</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">{{ comments.number }} / {{ comments.paginator.num_pages }}</span>
+                </li>
+
+                {% if comments.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ comments.next_page_number }}">›</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ comments.paginator.num_pages }}">Последняя &raquo;</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
 </div>  
 {% endblock %}

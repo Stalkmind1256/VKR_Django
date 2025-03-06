@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Comment
+from .models import Comment, Suggestion
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -44,4 +44,12 @@ class CommentForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': 'Оставьте комментарий...'
             })
+        }
+
+class SuggestionForm(forms.ModelForm):
+    class Meta:
+        model = Suggestion
+        fields = ['title', 'description']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Описание предложения'}),
         }
