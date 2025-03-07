@@ -1,12 +1,14 @@
 from django.shortcuts import render, get_object_or_404,redirect
 from django.utils.dateparse import parse_date
 from .models import Category, Divisions
-from .models import Suggestion
+from .models import Suggestion, Comment
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from .forms import CommentForm
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
+from .forms import SuggestionForm
+from django.core.exceptions import PermissionDenied
 
 # @login_required
 # def add_comment(request, suggestion_id):
@@ -62,15 +64,28 @@ def suggestion_form(request):
     divisions = Divisions.objects.all()
     return render(request,'fss/suggestion_form.html',{'categories': categories, 'divisions':divisions})
 
-def suggestion_detail(request, pk):
-    suggestion = get_object_or_404(Suggestion, pk=pk)
-    comments = suggestion.comments.all()
-    form = CommentForm()  # Добавляем форму комментариев
+
+from django.core.paginator import Paginator
+from django.shortcuts import render, get_object_or_404
+from .models import Suggestion, Comment
+from .forms import CommentForm
+
+
+def suggestion_detail(request, suggestion_id):
+    suggestion = get_object_or_404(Suggestion, id=suggestion_id)
+    comments_list = Comment.objects.filter(suggestion=suggestion).order_by('-created_at')
+
+    # Пагинация: 5 комментариев на страницу
+    paginator = Paginator(comments_list, 4)
+    page_number = request.GET.get('page')
+    comments = paginator.get_page(page_number)
+
+    form = CommentForm()
 
     return render(request, 'fss/suggestion_detail.html', {
         'suggestion': suggestion,
-        'comments': comments,
-        'form': form,  # Передаем форму в шаблон
+        'comments': comments,  # Передаём объект Paginator
+        'form': form
     })
 
 def home(request):
@@ -100,7 +115,6 @@ def register(request):
 def add_comment(request, suggestion_id):
     suggestion = get_object_or_404(Suggestion, id=suggestion_id)
 
-    # Если POST-запрос, обрабатываем форму
     if request.method == 'POST':
         form = CommentForm(request.POST)
         if form.is_valid():
@@ -108,18 +122,40 @@ def add_comment(request, suggestion_id):
             comment.suggestion = suggestion
             comment.user = request.user
             comment.save()
-            return redirect('suggestion_detail', pk=suggestion.id)
+            return redirect('suggestion_detail', suggestion_id=suggestion.id)  # 🛠 Исправлено!
+
     else:
         form = CommentForm()
 
-    # Передаем форму в шаблон
     return render(request, 'fss/suggestion_detail.html', {
         'suggestion': suggestion,
         'comments': suggestion.comments.all(),
-        'form': form,  # Передаем форму в шаблон
+        'form': form,
     })
 
 @login_required
 def user_suggestions(request):
-    suggestions = Suggestion.objects.all()
-    return render(request, 'fss/user_suggestions.html', {'suggestions': suggestions})
+    suggestions = Suggestion.objects.filter(user=request.user)
+    return render(request, 'fss/my_suggestions.html', {'suggestions': suggestions})
+
+def my_suggestions(request):
+    user_suggestions = Suggestion.objects.filter(user=request.user)
+    return render(request, 'my_suggestions.html', {'suggestions': user_suggestions})
+
+@login_required
+def edit_suggestion(request, suggestion_id):
+    suggestion = get_object_or_404(Suggestion, id=suggestion_id)
+
+
+    # if suggestion.author != request.user:
+    #     raise PermissionDenied("Вы не можете редактировать это предложение.")
+
+    if request.method == 'POST':
+        form = SuggestionForm(request.POST, instance=suggestion)
+        if form.is_valid():
+            form.save()
+            return redirect('fss/my_suggestions', suggestion_id=suggestion.id)
+    else:
+        form = SuggestionForm(instance=suggestion)
+
+    return render(request, 'fss/edit_suggestion.html', {'form': form, 'suggestion': suggestion})
