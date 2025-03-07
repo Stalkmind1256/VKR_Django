@@ -8,6 +8,12 @@ from .forms import CommentForm
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
 
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from .models import Suggestion
+
 # @login_required
 # def add_comment(request, suggestion_id):
 #     suggestion = get_object_or_404(Suggestion, id=suggestion_id)
@@ -123,3 +129,40 @@ def add_comment(request, suggestion_id):
 def user_suggestions(request):
     suggestions = Suggestion.objects.all()
     return render(request, 'fss/user_suggestions.html', {'suggestions': suggestions})
+
+
+@csrf_exempt  # Лучше использовать CSRF-токен, но для теста можно отключить
+@require_POST
+def approve_suggestions(request, suggestion_id):
+    try:
+        suggestion = Suggestion.objects.get(id=suggestion_id)
+        suggestion.status = "approved"  # Меняем статус
+        suggestion.status.save()
+        return JsonResponse({"success": True, "status": "approved"})
+    except Suggestion.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Заявка не найдена"})
+
+@csrf_exempt
+@require_POST
+def reject_suggestion(request, suggestion_id):
+    try:
+        suggestion = Suggestion.objects.get(id=suggestion_id)
+        suggestion.status = "rejected"
+        suggestion.status.save()
+        return JsonResponse({"success": True, "status": "rejected"})
+    except Suggestion.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Заявка не найдена"})
+
+@csrf_exempt  # Лучше использовать CSRF-токен в AJAX, но для теста можно отключить
+@require_POST
+def update_suggestion_status(request):
+    suggestion_id = request.POST.get("id")
+    new_status = request.POST.get("status")
+
+    try:
+        suggestion = Suggestion.objects.get(id=suggestion_id)
+        suggestion.status.status_name = new_status  # Обновляем статус
+        suggestion.status.save()
+        return JsonResponse({"success": True})
+    except Suggestion.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Заявка не найдена"})
