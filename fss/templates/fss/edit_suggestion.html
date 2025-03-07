@@ -1,0 +1,13 @@
+{% extends 'fss/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Редактирование предложения</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+    </form>
+    <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-secondary mt-2">Отмена</a>
+</div>
+{% endblock %}

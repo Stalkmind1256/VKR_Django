@@ -3,7 +3,7 @@ from . import views
 from django.contrib.auth import views as auth_views
 from django.shortcuts import redirect
 from .views import suggestion_detail
-from .views import user_suggestions, approve_suggestions, reject_suggestion
+from .views import user_suggestions
 
 
 def redirect_home(request):
@@ -25,7 +25,4 @@ urlpatterns = [
     path('suggestion/<int:suggestion_id>/comment/', views.add_comment, name='add_comment'),
 
     path('my_suggestions/', user_suggestions, name='user_suggestions'),
-
-    path("approve/<int:suggestion_id>/", approve_suggestions, name="approve_suggestion"),
-    path("reject/<int:suggestion_id>/", reject_suggestion, name="reject_suggestion"),
 ]

@@ -1,0 +1,41 @@
+{% block content %}
+<div class="container">
+    <h1 class="text-center mb-5">Контактная информация</h1>
+    
+    <!-- Форма обратной связи -->
+    <h3>Связаться с нами</h3>
+    <form method="post" action="{% url 'contact' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="name">Имя</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Электронная почта</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+            <label for="subject">Тема сообщения</label>
+            <input type="text" class="form-control" id="subject" name="subject" required>
+        </div>
+        <div class="form-group">
+            <label for="message">Сообщение</label>
+            <textarea class="form-control" id="message" name="message" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Отправить</button>
+    </form>
+    
+    <!-- Информация о контактах -->
+    <div class="contact-info mt-5">
+        <h3>Контактные данные</h3>
+        <p><strong>Адрес:</strong> 12345, Москва, ул. Примерная, д.1</p>
+        <p><strong>Телефон:</strong> +7 (123) 456-78-90</p>
+        <p><strong>Email:</strong> example@example.com</p>
+    </div>
+    
+    <!-- Карта -->
+    <div class="map mt-5">
+        <iframe src="https://www.google.com/maps/embed?pb=YOUR_GOOGLE_MAPS_EMBED_URL" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+    </div>
+</div>
+{% endblock %}
