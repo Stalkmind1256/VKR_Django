@@ -12,22 +12,22 @@
 
       <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-{#              <li class="nav-item">#}
-{#                  <a class="nav-link active" href="/home">Главная</a>#}
-{#              </li>#}
+              <li class="nav-item">
+                  <a class="nav-link active" href="/home">Главная</a>
+              </li>
               <li class="nav-item">
                   <a class="nav-link" href="/suggest">Предложения</a>
               </li>
-{#              <li class="nav-item">#}
-{#                  <a class="nav-link" href="#">Контакты</a>#}
-{#              </li>#}
+              <li class="nav-item">
+                  <a class="nav-link" href="#">Контакты</a>
+              </li>
               <li class="nav-item">
                   <a class="nav-link" href="{% url 'user_suggestions' %}">Мои предложения</a>
               </li>
 
               {% if user.is_superuser %}
               <li class="nav-item">
-                   <a class="nav-link" href="/list">Панель модератора</a>
+                   <a class="nav-link" href="/list">Просмотр базы</a>
               </li>
               {% endif %}
 
