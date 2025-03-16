@@ -1,10 +1,11 @@
 from django.shortcuts import render, get_object_or_404,redirect
 from django.utils.dateparse import parse_date
-from .models import Category, Divisions
+from .models import Category, Divisions, Suggestion, Status
 from .models import Suggestion, Comment
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from .forms import CommentForm
+from django.http import JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
 from .forms import SuggestionForm
@@ -140,7 +141,7 @@ def user_suggestions(request):
 
 def my_suggestions(request):
     user_suggestions = Suggestion.objects.filter(user=request.user)
-    return render(request, 'my_suggestions.html', {'suggestions': user_suggestions})
+    return render(request, 'fss/my_suggestions.html', {'suggestions': user_suggestions})
 
 @login_required
 def edit_suggestion(request, suggestion_id):
@@ -159,3 +160,65 @@ def edit_suggestion(request, suggestion_id):
         form = SuggestionForm(instance=suggestion)
 
     return render(request, 'fss/edit_suggestion.html', {'form': form, 'suggestion': suggestion})
+
+def create_suggestion(request):
+    if request.method == 'POST':
+        form = SuggestionForm(request.POST)
+        if form.is_valid():
+            suggestion = form.save(commit=False)
+            suggestion.user = request.user  # Привязываем к текущему пользователю
+            suggestion.status = Status.objects.get(name='draft')  # Статус "Черновик"
+            suggestion.save()
+            return redirect('my_suggestions')
+    else:
+        form = SuggestionForm()
+    return render(request, 'fss/suggestion_form.html', {'form': form})
+
+
+def edit_suggestion(request, pk):
+    suggestion = get_object_or_404(Suggestion, pk=pk, user=request.user)
+    if suggestion.status.name != 'draft':
+        return redirect('fss/my_suggestions')  # Запрещаем редактирование, если это не черновик
+
+    if request.method == 'POST':
+        form = SuggestionForm(request.POST, instance=suggestion)
+        if form.is_valid():
+            form.save()
+            return redirect('my_suggestions')
+    else:
+        form = SuggestionForm(instance=suggestion)
+    return render(request, 'fss/suggestion_form.html', {'form': form})
+
+
+def submit_suggestion(request, pk):
+    suggestion = get_object_or_404(Suggestion, pk=pk, user=request.user)
+    if suggestion.status.name == 'draft':
+        suggestion.status = Status.objects.get(name='submitted')  # Меняем статус на "В ожидании"
+        suggestion.save()
+    return redirect('my_suggestions')
+
+
+def reject_suggestion(request):
+    if request.method == "POST":
+        suggestion_id = request.POST.get("suggestion_id")
+        reason = request.POST.get("reason")
+        action = request.POST.get("action")
+
+        suggestion = get_object_or_404(Suggestion, id=suggestion_id)
+
+        # Получаем статус "archived" или "draft" из модели Status
+        if action == "archive":
+            status = get_object_or_404(Status, name="archived")
+        elif action == "draft":
+            status = get_object_or_404(Status, name="draft")
+        else:
+            return JsonResponse({"success": False, "error": "Invalid action"})
+
+        # Устанавливаем новый статус и комментарий
+        suggestion.status = status
+        suggestion.moderator_comment = reason
+        suggestion.save()
+
+        return JsonResponse({"success": True})
+
+    return JsonResponse({"success": False})

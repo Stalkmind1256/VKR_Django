@@ -6,7 +6,7 @@
 
     <!-- Кнопка добавления нового предложения -->
     <div class="text-center mb-4">
-        <a href="{% url 'suggestion_form' %}" class="btn btn-success btn-lg">Добавить новое предложение</a>
+        <a href="{% url 'create_suggestion' %}" class="btn btn-success btn-lg">Добавить новое предложение</a>
     </div>
 
     <!-- Список предложений -->
@@ -14,10 +14,29 @@
         <div class="list-group">
             {% for suggestion in suggestions %}
                 <div class="list-group-item list-group-item-action">
-                    <h4 class="mb-2">{{ suggestion.title }}</h4>
-                    <p class="mb-3">{{ suggestion.description }}</p>
-                    <a href="{% url 'edit_suggestion' suggestion.id %}">Редактировать</a>
-                    <a href="{% url 'suggestion_detail' suggestion.id %}">Комментировать</a>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-2">{{ suggestion.title }}</h4>
+                            <p class="mb-3">{{ suggestion.description }}</p>
+                            <small class="text-muted">
+                                Статус: {{ suggestion.status }}
+                            </small>
+                        </div>
+                        <div class="btn-group">
+                            {% if suggestion.status.name == 'draft' %}
+                                <a href="{% url 'edit_suggestion' suggestion.id %}" class="btn btn-warning btn-sm">
+                                    Редактировать
+                                </a>
+                                <a href="{% url 'submit_suggestion' suggestion.id %}" class="btn btn-success btn-sm">
+                                    Отправить
+                                </a>
+                            {% else %}
+                                <span class="badge bg-secondary">
+                                    {{ suggestion.status }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             {% endfor %}
         </div>

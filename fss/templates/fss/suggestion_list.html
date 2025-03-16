@@ -1,115 +1,137 @@
 {% extends 'fss/base.html' %}
 
 {% block content %}
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Боковая панель -->
-            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
-                <div class="position-sticky">
-                    <ul class="nav flex-column">
-                        <li class="nav-item"><a class="nav-link active" href="#">Dashboard</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Пользователи</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Жалобы</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Настройки</a></li>
-                    </ul>
-                </div>
-            </nav>
-            
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <h2 class="mt-4 text-primary">Панель модератора</h2>
-                
-                <!-- Фильтр предложений -->
-                <div class="card shadow-sm p-4 mb-4">
-                    <h4 class="mb-3">Фильтр предложений</h4>
-                    <form method="get" class="row g-3">
-                        <div class="col-md-3">
-                            <label for="category" class="form-label">Категория</label>
-                            <select name="category" id="category" class="form-select">
-                                <option value="">Все категории</option>
-                                <option value="technology" {% if request.GET.category == "technology" %}selected{% endif %}>Технологии</option>
-                                <option value="education" {% if request.GET.category == "education" %}selected{% endif %}>Образование</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="status" class="form-label">Статус</label>
-                            <select name="status" id="status" class="form-select">
-                                <option value="">Все статусы</option>
-                                <option value="pending" {% if request.GET.status == "pending" %}selected{% endif %}>Ожидает</option>
-                                <option value="approved" {% if request.GET.status == "approved" %}selected{% endif %}>Одобрено</option>
-                                <option value="rejected" {% if request.GET.status == "rejected" %}selected{% endif %}>Отклонено</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="start_date" class="form-label">Начальная дата</label>
-                            <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request.GET.start_date }}">
-                        </div>
-                        <div class="col-md-3">
-                            <label for="end_date" class="form-label">Конечная дата</label>
-                            <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request.GET.end_date }}">
-                        </div>
-                        <div class="col-12 text-end">
-                            <button type="submit" class="btn btn-primary">Применить фильтры</button>
-                        </div>
-                    </form>
-                </div>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Боковая панель -->
+        <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+            <div class="position-sticky">
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link active" href="#">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Пользователи</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Жалобы</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Настройки</a></li>
+                </ul>
+            </div>
+        </nav>
 
-                <!-- Таблица модерации контента -->
-                <div class="card shadow-sm p-4">
-                    <h4 class="mb-3">Список предложений</h4>
-                    <table class="table table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>ID</th>
-                                <th>Пользователь</th>
-                                <th>Контент</th>
-                                <th>Статус</th>
-                                <th>Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for suggestion in suggestions %}
-                            <tr>
-                                <td>{{ suggestion.id }}</td>
-                                <td>{{ suggestion.user.username }}</td>
-                                <td>{{ suggestion.title }}</td>
-                                <td>
-                                    <span class="badge 
-                                        {% if suggestion.status.status_name == 'approved' %}bg-success
-                                        {% elif suggestion.status.status_name == 'rejected' %}bg-danger
-                                        {% else %}bg-warning
-                                        {% endif %}">
-                                        {{ suggestion.status.status_name|capfirst }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-info btn-sm">Подробнее</a>
-                                    <button class="btn btn-success btn-sm">Принять</button>
-                                    <button class="btn btn-danger btn-sm">Отклонить</button>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" class="text-center text-muted">Нет предложений для отображения.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <h2 class="mt-4 text-primary">Панель модератора</h2>
 
-                <!-- Форма блокировки пользователей -->
-                <h2 class="mt-4">Блокировка пользователей</h2>
-                <form>
+            <!-- Список предложений -->
+            <div class="card shadow-sm p-4">
+                <h4 class="mb-3">Список предложений</h4>
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Пользователь</th>
+                            <th>Контент</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for suggestion in suggestions %}
+                        <tr>
+                            <td>{{ suggestion.id }}</td>
+                            <td>{{ suggestion.user.username }}</td>
+                            <td>{{ suggestion.title }}</td>
+                            <td>
+                                <span class="badge
+                                    {% if suggestion.status.name == 'draft' %} bg-secondary
+                                    {% elif suggestion.status.name == 'submitted' %} bg-primary
+                                    {% elif suggestion.status.name == 'rejected' %} bg-danger
+                                    {% elif suggestion.status.name == 'archived' %} bg-dark
+                                    {% else %} bg-warning {% endif %}">
+                                    {{ suggestion.status.get_name_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-info btn-sm">Подробнее</a>
+                                <button class="btn btn-success btn-sm btn-approve" data-id="{{ suggestion.id }}">Принять</button>
+                                <button class="btn btn-danger btn-sm btn-reject" data-id="{{ suggestion.id }}" data-title="{{ suggestion.title }}">Отклонить</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">Нет предложений для отображения.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Модальное окно для отклонения -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectModalLabel">Отклонить предложение</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="rejectForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="suggestion_id" id="suggestion_id">
+
                     <div class="mb-3">
-                        <label for="username" class="form-label">Имя пользователя</label>
-                        <input type="text" class="form-control" id="username" placeholder="Введите имя">
+                        <label for="reject_reason" class="form-label">Причина отклонения</label>
+                        <textarea class="form-control" id="reject_reason" name="reason" rows="3" required></textarea>
                     </div>
+
                     <div class="mb-3">
-                        <label for="reason" class="form-label">Причина блокировки</label>
-                        <input type="text" class="form-control" id="reason" placeholder="Введите причину">
+                        <label class="form-label">Действие:</label>
+                        <select class="form-select" id="reject_action" name="action">
+                            <option value="archive">Архивировать</option>
+                            <option value="draft">Вернуть в черновик</option>
+                        </select>
                     </div>
-                    <button type="submit" class="btn btn-danger">Заблокировать</button>
+
+                    <button type="submit" class="btn btn-danger w-100">Отклонить</button>
                 </form>
-            </main>
+            </div>
         </div>
     </div>
+</div>
+
+<!-- AJAX скрипт -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let rejectModal = new bootstrap.Modal(document.getElementById("rejectModal"));
+
+        document.querySelectorAll(".btn-reject").forEach(button => {
+            button.addEventListener("click", function () {
+                document.getElementById("suggestion_id").value = this.getAttribute("data-id");
+                document.getElementById("rejectModalLabel").innerText = `Отклонить: ${this.getAttribute("data-title")}`;
+                rejectModal.show();
+            });
+        });
+
+        document.getElementById("rejectForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            let formData = new FormData(this);
+
+            fetch("{% url 'reject_suggestion' %}", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert("Ошибка при отклонении");
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

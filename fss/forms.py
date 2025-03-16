@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Comment, Suggestion
+from .models import Suggestion, Category, Divisions,Comment
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -49,7 +49,27 @@ class CommentForm(forms.ModelForm):
 class SuggestionForm(forms.ModelForm):
     class Meta:
         model = Suggestion
-        fields = ['title', 'description']
+        fields = ['title', 'description', 'category', 'division']
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Описание предложения'}),
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Заголовок предложения'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Описание предложения'
+            }),
+            'category': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'division': forms.Select(attrs={
+                'class': 'form-select'
+            }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Динамически загружаем категории и подразделения
+        self.fields['category'].queryset = Category.objects.all()
+        self.fields['division'].queryset = Divisions.objects.all()

@@ -4,11 +4,11 @@ from django.contrib.auth.models import User
 
 #Статусы
 class Status(models.Model):
-
     STATUS_CHOICES = [
-        ('pending', 'В ожидании'),
-        ('approved', 'Одобрено'),
-        ('rejected', 'Отклонено')
+        ('draft', 'Черновик'),  # Черновик
+        ('submitted', 'Отправлено'),  # Отправлено на рассмотрение
+        ('rejected', 'Отклонено'),  # Отклонено
+        ('archived', 'Архив'),  # В архиве
     ]
     name = models.CharField(
         max_length=200,
@@ -19,7 +19,7 @@ class Status(models.Model):
     class Meta:
         verbose_name = 'Статус'
         verbose_name_plural = 'Статусы'
-        ordering = ['name']  # Сортировка по алфавиту
+        ordering = ['name']
 
     def __str__(self):
         return dict(self.STATUS_CHOICES).get(self.name, self.name)

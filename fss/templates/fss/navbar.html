@@ -1,10 +1,11 @@
 {% load static %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #4CAF50;">
   <div class="container">
-      <a class="navbar-brand d-flex align-items-center" href="/home">
-<!--          <img src="{% static 'images/logo.jpg' %}" alt="Логотип" class="me-2" style="height: 80px;">-->
-          Автоматизированная система учета и предложений
-      </a>
+      <a class="navbar-brand d-flex align-items-center fw-bold text-white"
+   href="/home"
+   style="padding-top: 1rem; padding-bottom: 1rem;">
+    <i class="bi bi-boxes me-2"></i> Автоматизированная система учета
+</a>
 
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -12,36 +13,43 @@
 
       <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-<!--              <li class="nav-item">-->
-<!--                  <a class="nav-link active" href="/home">Главная</a>-->
-<!--              </li>-->
-<!--              <li class="nav-item">-->
-<!--                  <a class="nav-link" href="/suggest">Предложения</a>-->
-<!--              </li>-->
               <li class="nav-item">
-                  <a class="nav-link" href="#">Контакты</a>
+                  <a class="nav-link text-white" href="#"><i class="bi bi-envelope me-1"></i> Контакты</a>
               </li>
               <li class="nav-item">
-                  <a class="nav-link" href="{% url 'my_suggestions' %}">Мои предложения</a>
+                  <a class="nav-link text-white" href="{% url 'my_suggestions' %}">
+                      <i class="bi bi-lightbulb me-1"></i> Мои предложения
+                  </a>
               </li>
 
               {% if user.is_superuser %}
               <li class="nav-item">
-                   <a class="nav-link" href="/list">Просмотр базы</a>
+                   <a class="nav-link text-white" href="/list">
+                       <i class="bi bi-database me-1"></i> Просмотр базы
+                   </a>
               </li>
               {% endif %}
-
           </ul>
 
+          <!-- Профиль пользователя -->
           <div class="navbar-nav">
               {% if user.is_authenticated %}
-                  <span class="navbar-text me-3 d-none d-lg-inline"><h5>{{ user.username }}</h5></span>
-                  <a class="nav-link" href="{% url 'logout' %}">
-                      <i class="bi bi-person me-1"></i> Выйти
-                  </a>
+                  <div class="d-flex align-items-center">
+                      <!-- Аватарка -->
+                      <img src="{% static 'images/avatar_placeholder.jpg' %}" alt="Аватар" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                      <div class="dropdown">
+                          <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                              {{ user.first_name|default:"Иван" }} {{ user.last_name|default:"Иванов" }}
+                          </a>
+                          <ul class="dropdown-menu dropdown-menu-end">
+
+                              <li><a class="dropdown-item" href="{% url 'logout' %}">Выйти</a></li>
+                          </ul>
+                      </div>
+                  </div>
               {% else %}
-                  <a class="nav-link" href="{% url 'login' %}">
-                      <i class="bi bi-person me-1"></i> Войти
+                  <a class="btn btn-light text-dark" href="{% url 'login' %}">
+                      <i class="bi bi-box-arrow-in-right"></i> Войти
                   </a>
               {% endif %}
           </div>

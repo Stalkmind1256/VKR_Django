@@ -1,90 +1,40 @@
 {% extends 'fss/base.html' %}
 
 {% block content %}
-<h1 class="mt-5 mb-5 text-center">Подача предложения</h1>
-
-<div class="container">
-    <form id="suggestionForm" method="POST" class="needs-validation square-form mx-auto" style="max-width: 500px;" novalidate>
+<div class="container mt-5">
+    <h2 class="mb-4">
+        {% if form.instance.pk %}Редактирование предложения{% else %}Создание черновика{% endif %}
+    </h2>
+    <form method="post">
         {% csrf_token %}
-
         <div class="mb-3">
-            <label for="title" class="form-label">Заголовок предложения</label>
-            <input type="text" class="form-control" id="title" name="title" required>
+            <label  class="form-label">Заголовок предложения</label>
+            {{ form.title }}
             <div class="invalid-feedback">Пожалуйста, введите заголовок.</div>
         </div>
 
         <div class="mb-3">
-            <label for="description" class="form-label">Описание предложения</label>
-            <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
+            <label  class="form-label">Описание предложения</label>
+            {{ form.description }}
             <div class="invalid-feedback">Пожалуйста, введите описание.</div>
         </div>
 
         <div class="mb-3">
-            <label for="category" class="form-label">Категория</label>
-            <select class="form-select" id="category" name="category" required>
-                {% for category in categories %}
-                    <option value="{{ category.id }}">{{ category.get_name_display }}</option>
-                {% endfor %}
-            </select>
+            <label  class="form-label">Категория</label>
+            {{ form.category }}
             <div class="invalid-feedback">Пожалуйста, выберите категорию.</div>
         </div>
 
-        <!-- Добавление поля для выбора подразделения -->
         <div class="mb-3">
-            <label for="division" class="form-label">Подразделение</label>
-            <select class="form-select" id="division" name="division" required>
-                {% for division in divisions %}
-                    <option value="{{ division.id }}">{{ division.get_name_display }}</option>
-                {% endfor %}
-            </select>
+            <label  class="form-label">Подразделение</label>
+            {{ form.division }}
             <div class="invalid-feedback">Пожалуйста, выберите подразделение.</div>
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">Отправить предложение</button>
+        <button type="submit" class="btn btn-primary">
+            {% if form.instance.pk %}Сохранить изменения{% else %}Создать черновик{% endif %}
+        </button>
+        <a href="{% url 'my_suggestions' %}" class="btn btn-secondary">Отмена</a>
     </form>
-
-    <div class="message text-center mt-3" id="responseMessage"></div>
 </div>
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<script>
-    $(document).ready(function () {
-        $('#suggestionForm').submit(function (event) {
-            event.preventDefault();  // Предотвращаем стандартную отправку формы
-
-            const title = $('#title').val();
-            const description = $('#description').val();
-            const category = $('#category').val();  // Получаем категорию из формы
-            const division = $('#division').val();  // Получаем подразделение из формы
-
-            // Отправляем данные через AJAX на API
-            $.ajax({
-                url: 'http://127.0.0.1:8000/api/v0/suggestion/',  // Ваш API-эндпоинт
-                type: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}',
-                },
-                data: JSON.stringify({
-                    title: title,
-                    description: description,
-                    category: category,
-                    division: division,  // Отправляем выбранное подразделение
-                }),
-                success: function(response) {
-                    // Если запрос успешен, показываем сообщение
-                    $('#responseMessage').html('<p style="color: green;">Предложение успешно создано!</p>');
-                    $('#suggestionForm')[0].reset();  // Очищаем форму
-                },
-                error: function(xhr, status, error) {
-                    // Если произошла ошибка, показываем сообщение об ошибке
-                    const errorMessage = xhr.responseJSON && xhr.responseJSON.detail ? xhr.responseJSON.detail : 'Ошибка при создании предложения';
-                    $('#responseMessage').html('<p style="color: red;">' + errorMessage + '</p>');
-                }
-            });
-        });
-    });
-</script>
-
 {% endblock %}
