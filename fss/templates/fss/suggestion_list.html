@@ -1,5 +1,6 @@
-{% extends 'fss/base.html' %}
+    {% extends 'fss/base.html' %}
 
+<<<<<<< HEAD
 {% block content %}
 <div class="container-fluid">
     <div class="row">
@@ -135,3 +136,159 @@
     });
 </script>
 {% endblock %}
+=======
+    {% block content %}
+        <div class="container-fluid">
+            <div class="row">
+                <!-- Боковая панель -->
+                <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+                    <div class="position-sticky">
+                        <ul class="nav flex-column">
+                            <li class="nav-item"><a class="nav-link active" href="#">Dashboard</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#">Пользователи</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#">Жалобы</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#">Настройки</a></li>
+                        </ul>
+                    </div>
+                </nav>
+
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                    <h2 class="mt-4 text-primary">Панель модератора</h2>
+
+                    <!-- Таблица модерации контента -->
+                    <div class="card shadow-sm p-4">
+                        <h4 class="mb-3">Список предложений</h4>
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Пользователь</th>
+                                    <th>Контент</th>
+                                    <th>Статус</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for suggestion in suggestions %}
+                                <tr id="row-{{ suggestion.id }}">
+                                    <td>{{ suggestion.id }}</td>
+                                    <td>{{ suggestion.user.username }}</td>
+                                    <td>{{ suggestion.title }}</td>
+                                    <td>
+                                        <span id="status-{{ suggestion.id }}" class="badge
+                                            {% if suggestion.status.status_name == 'approved' %}bg-success
+                                            {% elif suggestion.status.status_name == 'rejected' %}bg-danger
+                                            {% else %}bg-warning
+                                            {% endif %}">
+                                            {{ suggestion.status.status_name|capfirst }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-info btn-sm">Подробнее</a>
+                                        <button class="btn btn-success btn-sm approve-btn" data-id="{{ suggestion.id }}">Принять</button>
+                                        <button class="btn btn-danger btn-sm reject-btn" data-id="{{ suggestion.id }}">Отклонить</button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">Нет предложений для отображения.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Форма блокировки пользователей -->
+                    <h2 class="mt-4">Блокировка пользователей</h2>
+                    <form id="ban-form">
+                        <div class="mb-3">
+                            <label for="ban-username" class="form-label">Имя пользователя</label>
+                            <input type="text" class="form-control" id="ban-username" placeholder="Введите имя">
+                        </div>
+                        <div class="mb-3">
+                            <label for="ban-reason" class="form-label">Причина блокировки</label>
+                            <input type="text" class="form-control" id="ban-reason" placeholder="Введите причину">
+                        </div>
+                        <button type="submit" class="btn btn-danger">Заблокировать</button>
+                    </form>
+                </main>
+            </div>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script>
+            $(document).ready(function () {
+                // Одобрение предложения
+                $(".approve-btn").click(function () {
+                    let suggestionId = $(this).data("id");
+
+                    $.ajax({
+                        url: `/approve/${suggestionId}/`,
+                        type: "POST",
+                        headers: { "X-CSRFToken": getCookie("csrftoken") },
+                        success: function (response) {
+                            if (response.status === "approved") {
+                                $("#status-" + suggestionId)
+                                    .removeClass("bg-warning bg-danger")
+                                    .addClass("bg-success")
+                                    .text("Одобрено");
+                            }
+                        },
+                        error: function () {
+                            alert("Ошибка при одобрении!");
+                        }
+                    });
+                });
+
+                // Отклонение предложения
+                $(".reject-btn").click(function () {
+                    let suggestionId = $(this).data("id");
+
+                    $.ajax({
+                        url: `/reject/${suggestionId}/`,
+                        type: "POST",
+                        headers: { "X-CSRFToken": getCookie("csrftoken") },
+                        success: function (response) {
+                            if (response.status === "rejected") {
+                                $("#status-" + suggestionId)
+                                    .removeClass("bg-warning bg-success")
+                                    .addClass("bg-danger")
+                                    .text("Отклонено");
+                            }
+                        },
+                        error: function () {
+                            alert("Ошибка при отклонении!");
+                        }
+                    });
+                });
+
+                // Блокировка пользователя
+                $("#ban-form").submit(function (event) {
+                    event.preventDefault();
+                    let username = $("#ban-username").val();
+                    let reason = $("#ban-reason").val();
+
+                    $.ajax({
+                        url: "/ban-user/",
+                        type: "POST",
+                        headers: { "X-CSRFToken": getCookie("csrftoken") },
+                        data: { username: username, reason: reason },
+                        success: function (response) {
+                            if (response.status === "banned") {
+                                alert("Пользователь " + username + " заблокирован.");
+                                $("#ban-username").val("");
+                                $("#ban-reason").val("");
+                            }
+                        },
+                        error: function () {
+                            alert("Ошибка при блокировке!");
+                        }
+                    });
+                });
+
+                // Функция для получения CSRF-токена
+                
+            });
+        </script>
+    {% endblock %}
+>>>>>>> a48658d9ccdcaadb72a7ff14ddd70fce44ee4a61
