@@ -31,4 +31,5 @@ urlpatterns = [
     path('suggestions/<int:pk>/edit/', views.edit_suggestion, name='edit_suggestion'),
     path('suggestions/<int:pk>/submit/', views.submit_suggestion, name='submit_suggestion'),
     path('reject-suggestion/', views.reject_suggestion, name='reject_suggestion'),
+    path('profile/', views.profile_view, name='profile'),
 ]
