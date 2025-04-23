@@ -1,5 +1,7 @@
 from django.shortcuts import render, get_object_or_404,redirect
 from django.utils.dateparse import parse_date
+from django.utils.text import re_prt
+
 from .models import Category, Divisions, Suggestion, Status
 from .models import Suggestion, Comment
 from django.contrib.auth.forms import UserCreationForm
@@ -222,3 +224,4 @@ def reject_suggestion(request):
         return JsonResponse({"success": True})
 
     return JsonResponse({"success": False})
+re_prt
