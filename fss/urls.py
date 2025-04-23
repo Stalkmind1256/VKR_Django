@@ -31,5 +31,10 @@ urlpatterns = [
     path('suggestions/<int:pk>/edit/', views.edit_suggestion, name='edit_suggestion'),
     path('suggestions/<int:pk>/submit/', views.submit_suggestion, name='submit_suggestion'),
     path('reject-suggestion/', views.reject_suggestion, name='reject_suggestion'),
+<<<<<<< HEAD
 ]
 re_prt
+=======
+    path('profile/', views.profile_view, name='profile'),
+]
+>>>>>>> 039b8bdaacc5471461e917d685426f586a5bf57b

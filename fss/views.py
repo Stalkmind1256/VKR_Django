@@ -224,4 +224,11 @@ def reject_suggestion(request):
         return JsonResponse({"success": True})
 
     return JsonResponse({"success": False})
+<<<<<<< HEAD
 re_prt
+=======
+
+@login_required
+def profile_view(request):
+    return render(request, 'profile.html')
+>>>>>>> 039b8bdaacc5471461e917d685426f586a5bf57b

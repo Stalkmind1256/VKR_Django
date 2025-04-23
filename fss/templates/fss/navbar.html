@@ -33,26 +33,30 @@
 
           <!-- Профиль пользователя -->
           <div class="navbar-nav">
-              {% if user.is_authenticated %}
-                  <div class="d-flex align-items-center">
-                      <!-- Аватарка -->
-                      <img src="{% static 'images/avatar_placeholder.jpg' %}" alt="Аватар" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
-                      <div class="dropdown">
-                          <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                              {{ user.first_name|default:"Иван" }} {{ user.last_name|default:"Иванов" }}
-                          </a>
-                          <ul class="dropdown-menu dropdown-menu-end">
-
-                              <li><a class="dropdown-item" href="{% url 'logout' %}">Выйти</a></li>
-                          </ul>
-                      </div>
-                  </div>
-              {% else %}
-                  <a class="btn btn-light text-dark" href="{% url 'login' %}">
-                      <i class="bi bi-box-arrow-in-right"></i> Войти
-                  </a>
-              {% endif %}
-          </div>
+            {% if user.is_authenticated %}
+                <div class="d-flex align-items-center">
+                    <img src="{% static 'images/avatar_placeholder.jpg' %}" alt="Аватар" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                    <div class="dropdown">
+                        <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ user.first_name|default:"Иван" }} {{ user.last_name|default:"Иванов" }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'profile' %}">
+                                    <i class="bi bi-person-circle me-1"></i> Личный кабинет
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}">Выйти</a></li>
+                        </ul>
+                    </div>
+                </div>
+            {% else %}
+                <a class="btn btn-light text-dark" href="{% url 'login' %}">
+                    <i class="bi bi-box-arrow-in-right"></i> Войти
+                </a>
+            {% endif %}
+        </div>
       </div>
   </div>
 </nav>
