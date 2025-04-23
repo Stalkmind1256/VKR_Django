@@ -73,4 +73,3 @@ class SuggestionForm(forms.ModelForm):
         # Динамически загружаем категории и подразделения
         self.fields['category'].queryset = Category.objects.all()
         self.fields['division'].queryset = Divisions.objects.all()
-re_prt

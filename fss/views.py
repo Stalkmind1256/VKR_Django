@@ -199,6 +199,20 @@ def submit_suggestion(request, pk):
         suggestion.save()
     return redirect('my_suggestions')
 
+def get_status_class(status_name):
+    """Возвращает класс для отображения статуса"""
+    status_classes = {
+        'draft': 'bg-secondary',
+        'submitted': 'bg-primary',
+        'rejected': 'bg-danger',
+        'archived': 'bg-dark',
+        'approved': 'bg-success',
+        'preparing': 'bg-info',
+        'in_progress': 'bg-warning',
+        'completed': 'bg-success',
+    }
+    return status_classes.get(status_name, 'bg-warning')
+
 
 def reject_suggestion(request):
     if request.method == "POST":
@@ -224,11 +238,29 @@ def reject_suggestion(request):
         return JsonResponse({"success": True})
 
     return JsonResponse({"success": False})
-<<<<<<< HEAD
-re_prt
-=======
+
 
 @login_required
-def profile_view(request):
-    return render(request, 'profile.html')
->>>>>>> 039b8bdaacc5471461e917d685426f586a5bf57b
+def approve_suggestion(request):
+    if request.method == "POST":
+        suggestion_id = request.POST.get("suggestion_id")
+        status_name = request.POST.get("status")
+        comment = request.POST.get("comment", "")
+
+        # Получаем объекты Suggestion и Status или возвращаем 404
+        suggestion = get_object_or_404(Suggestion, id=suggestion_id)
+        status = get_object_or_404(Status, name=status_name)
+
+        # Обновляем статус и комментарий модератора
+        suggestion.status = status
+        suggestion.moderator_comment = comment
+        suggestion.moderator = request.user
+        suggestion.save()
+
+        return JsonResponse({
+            "success": True,
+            "new_status": status.get_name_display(),
+            "status_class": get_status_class(status.name)
+        })
+
+    return JsonResponse({"success": False, "error": "Метод не разрешен"}, status=405)

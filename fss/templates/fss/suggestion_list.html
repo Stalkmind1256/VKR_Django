@@ -1,4 +1,5 @@
 {% extends 'fss/base.html' %}
+
 {% block content %}
 <div class="container-fluid">
     <div class="row">
@@ -17,7 +18,6 @@
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <h2 class="mt-4 text-primary">Панель модератора</h2>
 
-            <!-- Список предложений -->
             <div class="card shadow-sm p-4">
                 <h4 class="mb-3">Список предложений</h4>
                 <table class="table table-hover">
@@ -42,14 +42,20 @@
                                     {% elif suggestion.status.name == 'submitted' %} bg-primary
                                     {% elif suggestion.status.name == 'rejected' %} bg-danger
                                     {% elif suggestion.status.name == 'archived' %} bg-dark
+                                    {% elif suggestion.status.name == 'approved' %} bg-success
+                                    {% elif suggestion.status.name == 'preparing' %} bg-info
+                                    {% elif suggestion.status.name == 'in_progress' %} bg-warning
+                                    {% elif suggestion.status.name == 'completed' %} bg-success
                                     {% else %} bg-warning {% endif %}">
                                     {{ suggestion.status.get_name_display }}
                                 </span>
                             </td>
                             <td>
-                                <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-info btn-sm">Подробнее</a>
-                                <button class="btn btn-success btn-sm btn-approve" data-id="{{ suggestion.id }}">Принять</button>
-                                <button class="btn btn-danger btn-sm btn-reject" data-id="{{ suggestion.id }}" data-title="{{ suggestion.title }}">Отклонить</button>
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-info btn-sm">Подробнее</a>
+                                    <button class="btn btn-success btn-sm btn-approve" data-id="{{ suggestion.id }}" data-title="{{ suggestion.title }}">Принять</button>
+                                    <button class="btn btn-danger btn-sm btn-reject" data-id="{{ suggestion.id }}" data-title="{{ suggestion.title }}">Отклонить</button>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
@@ -64,7 +70,7 @@
     </div>
 </div>
 
-<!-- Модальное окно для отклонения -->
+<!-- Модальное окно ОТКЛОНЕНИЯ -->
 <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -75,13 +81,11 @@
             <div class="modal-body">
                 <form id="rejectForm">
                     {% csrf_token %}
-                    <input type="hidden" name="suggestion_id" id="suggestion_id">
-
+                    <input type="hidden" name="suggestion_id" id="reject_suggestion_id">
                     <div class="mb-3">
                         <label for="reject_reason" class="form-label">Причина отклонения</label>
                         <textarea class="form-control" id="reject_reason" name="reason" rows="3" required></textarea>
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label">Действие:</label>
                         <select class="form-select" id="reject_action" name="action">
@@ -89,7 +93,6 @@
                             <option value="draft">Вернуть в черновик</option>
                         </select>
                     </div>
-
                     <button type="submit" class="btn btn-danger w-100">Отклонить</button>
                 </form>
             </div>
@@ -97,41 +100,101 @@
     </div>
 </div>
 
-<!-- AJAX скрипт -->
+<!-- Модальное окно ПРИНЯТИЯ -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="approveModalLabel">Принять предложение</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="approveForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="suggestion_id" id="approve_suggestion_id">
+                    <div class="mb-3">
+                        <label class="form-label">Новый статус:</label>
+                        <select class="form-select" id="approve_status" name="status">
+                            <option value="approved">Подтверждено</option>
+                            <option value="preparing">Готовится к реализации</option>
+                            <option value="in_progress">Реализуется</option>
+                            <option value="completed">Реализовано</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Принять</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JS: обработка отклонения и принятия -->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        let rejectModal = new bootstrap.Modal(document.getElementById("rejectModal"));
+document.addEventListener("DOMContentLoaded", function () {
+    const rejectModal = new bootstrap.Modal(document.getElementById("rejectModal"));
+    const approveModal = new bootstrap.Modal(document.getElementById("approveModal"));
 
-        document.querySelectorAll(".btn-reject").forEach(button => {
-            button.addEventListener("click", function () {
-                document.getElementById("suggestion_id").value = this.getAttribute("data-id");
-                document.getElementById("rejectModalLabel").innerText = `Отклонить: ${this.getAttribute("data-title")}`;
-                rejectModal.show();
-            });
-        });
-
-        document.getElementById("rejectForm").addEventListener("submit", function (event) {
-            event.preventDefault();
-
-            let formData = new FormData(this);
-
-            fetch("{% url 'reject_suggestion' %}", {
-                method: "POST",
-                body: formData,
-                headers: {
-                    "X-CSRFToken": "{{ csrf_token }}"
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert("Ошибка при отклонении");
-                }
-            });
+    document.querySelectorAll(".btn-reject").forEach(button => {
+        button.addEventListener("click", function () {
+            document.getElementById("reject_suggestion_id").value = this.dataset.id;
+            document.getElementById("rejectModalLabel").innerText = `Отклонить: ${this.dataset.title}`;
+            rejectModal.show();
         });
     });
-</script>
-{% endblock %}
 
+    document.querySelectorAll(".btn-approve").forEach(button => {
+        button.addEventListener("click", function () {
+            document.getElementById("approve_suggestion_id").value = this.dataset.id;
+            document.getElementById("approveModalLabel").innerText = `Принять: ${this.dataset.title}`;
+            approveModal.show();
+        });
+    });
+
+    document.getElementById("rejectForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+        const id = formData.get("suggestion_id");
+
+        fetch("{% url 'reject_suggestion' %}", {
+            method: "POST",
+            body: formData,
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                updateStatusDOM(id, data.new_status, data.status_class);
+                rejectModal.hide();
+            } else alert("Ошибка при отклонении");
+        });
+    });
+
+    document.getElementById("approveForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+        const id = formData.get("suggestion_id");
+
+        fetch("{% url 'approve_suggestion' %}", {
+            method: "POST",
+            body: formData,
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                updateStatusDOM(id, data.new_status, data.status_class);
+                approveModal.hide();
+            } else alert("Ошибка при принятии");
+        });
+    });
+
+    function updateStatusDOM(id, newStatus, statusClass) {
+        const row = document.querySelector(`button[data-id='${id}']`).closest("tr");
+        const cell = row.querySelector("td:nth-child(4)");
+
+        cell.innerHTML = `<span class="badge ${statusClass}">${newStatus}</span>`;
+    }
+});
+</script>
+
+{% endblock %}

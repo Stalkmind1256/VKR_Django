@@ -5,10 +5,15 @@ from django.contrib.auth.models import User
 #Статусы
 class Status(models.Model):
     STATUS_CHOICES = [
-        ('draft', 'Черновик'),  # Черновик
-        ('submitted', 'Отправлено'),  # Отправлено на рассмотрение
-        ('rejected', 'Отклонено'),  # Отклонено
-        ('archived', 'Архив'),  # В архиве
+        ('draft', 'Черновик'),
+        ('submitted', 'Отправлено'),
+        ('under_review', 'На рассмотрении'),
+        ('approved', 'Подтверждено'),
+        ('preparing', 'Готовится к реализации'),
+        ('in_progress', 'Реализуется'),
+        ('completed', 'Реализовано'),
+        ('rejected', 'Отклонено'),
+        ('archived', 'Архив'),
     ]
     name = models.CharField(
         max_length=200,
@@ -143,4 +148,3 @@ class Comment(models.Model):
 #
 #     def __str__(self):
 #         return f"{self.user.username} - {self.role_name}"
-re_prt

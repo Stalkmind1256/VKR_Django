@@ -41,11 +41,7 @@
                             {{ user.first_name|default:"Иван" }} {{ user.last_name|default:"Иванов" }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li>
-                                <a class="dropdown-item" href="{% url 'profile' %}">
-                                    <i class="bi bi-person-circle me-1"></i> Личный кабинет
-                                </a>
-                            </li>
+
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{% url 'logout' %}">Выйти</a></li>
                         </ul>
