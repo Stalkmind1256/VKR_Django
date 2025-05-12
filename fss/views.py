@@ -1,104 +1,26 @@
-from django.shortcuts import render, get_object_or_404,redirect
+from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.dateparse import parse_date
-from django.utils.text import re_prt
-
-from .models import Category, Divisions, Suggestion, Status
-from .models import Suggestion, Comment
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib import messages
-from .forms import CommentForm
-from django.http import JsonResponse
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.contrib.auth.decorators import login_required
-from .forms import SuggestionForm
+from django.contrib import messages
+from django.http import JsonResponse
 from django.core.exceptions import PermissionDenied
+from django.views.decorators.http import require_POST
 
-# @login_required
-# def add_comment(request, suggestion_id):
-#     suggestion = get_object_or_404(Suggestion, id=suggestion_id)
-#
-#     if request.method == "POST":
-#         form = CommentForm(request.POST)
-#         if form.is_valid():
-#             comment = form.save(commit=False)
-#             comment.suggestion = suggestion
-#             comment.author = request.user
-#             comment.save()
-#             return redirect('suggestion_detail', suggestion_id=suggestion.id)
-#     else:
-#         form = CommentForm()
-#
-#     return render(request, 'fss/add_comment.html', {'form': form, 'suggestion': suggestion})
-
-def suggestion_list(request):
-    suggestions = Suggestion.objects.select_related('category', 'status').all()
-
-    # Фильтрация по категориям и статусам
-    category = request.GET.get('category')
-    status = request.GET.get('status')
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
-
-    if category:
-        suggestions = suggestions.filter(category__name=category)
-
-    if status:
-        suggestions = suggestions.filter(status__name=status)
-
-    if start_date:
-        suggestions = suggestions.filter(date_create__gte=parse_date(start_date))
-    if end_date:
-        suggestions = suggestions.filter(date_create__lte=parse_date(end_date))
-
-    paginator = Paginator(suggestions, 20)  # По 20 элементов на страницу
-    page = request.GET.get('page')
-
-    try:
-        suggestions = paginator.page(page)
-    except PageNotAnInteger:
-        suggestions = paginator.page(1)
-    except EmptyPage:
-        suggestions = paginator.page(paginator.num_pages)
-
-    return render(request, 'fss/suggestion_list.html', {'suggestions': suggestions})
-
-def suggestion_form(request):
-    categories = Category.objects.all()
-    divisions = Divisions.objects.all()
-    return render(request,'fss/suggestion_form.html',{'categories': categories, 'divisions':divisions})
+from .models import Category, Divisions, Suggestion, Status, Notification, Comment
+from .forms import SuggestionForm, CommentForm
+from django.contrib.auth.forms import UserCreationForm
 
 
-from django.core.paginator import Paginator
-from django.shortcuts import render, get_object_or_404
-from .models import Suggestion, Comment
-from .forms import CommentForm
-
-
-def suggestion_detail(request, suggestion_id):
-    suggestion = get_object_or_404(Suggestion, id=suggestion_id)
-    comments_list = Comment.objects.filter(suggestion=suggestion).order_by('-created_at')
-
-    # Пагинация: 5 комментариев на страницу
-    paginator = Paginator(comments_list, 4)
-    page_number = request.GET.get('page')
-    comments = paginator.get_page(page_number)
-
-    form = CommentForm()
-
-    return render(request, 'fss/suggestion_detail.html', {
-        'suggestion': suggestion,
-        'comments': comments,  # Передаём объект Paginator
-        'form': form
-    })
-
+@login_required
 def home(request):
-    return render(request, 'fss/home.html')
+    unread_count = request.user.notifications.filter(is_read=False).count()
+    return render(request, 'fss/home.html', {'unread_count': unread_count})
+
 
 def password_reset(request):
     return render(request, 'registration/password_reset.html')
-# def suggestion_create(request):
-#     categories = Category.objects.all()
-#     return render(request,'api_v0/suggestion_create.html',{'categories': categories})
+
 
 def register(request):
     if request.method == 'POST':
@@ -110,8 +32,53 @@ def register(request):
             return redirect('login')
     else:
         form = UserCreationForm()
-
     return render(request, 'registration/register.html', {'form': form})
+
+
+def suggestion_list(request):
+    suggestions = Suggestion.objects.select_related('category', 'status').all()
+
+    category = request.GET.get('category')
+    status = request.GET.get('status')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    if category:
+        suggestions = suggestions.filter(category__name=category)
+    if status:
+        suggestions = suggestions.filter(status__name=status)
+    if start_date:
+        suggestions = suggestions.filter(date_create__gte=parse_date(start_date))
+    if end_date:
+        suggestions = suggestions.filter(date_create__lte=parse_date(end_date))
+
+    paginator = Paginator(suggestions, 20)
+    page = request.GET.get('page')
+
+    try:
+        suggestions = paginator.page(page)
+    except (PageNotAnInteger, EmptyPage):
+        suggestions = paginator.page(1)
+
+    return render(request, 'fss/suggestion_list.html', {'suggestions': suggestions})
+
+
+@login_required
+def suggestion_detail(request, suggestion_id):
+    suggestion = get_object_or_404(Suggestion, id=suggestion_id)
+    comments_list = suggestion.comments.order_by('-created_at')
+
+    paginator = Paginator(comments_list, 4)
+    page = request.GET.get('page')
+    comments = paginator.get_page(page)
+
+    form = CommentForm()
+
+    return render(request, 'fss/suggestion_detail.html', {
+        'suggestion': suggestion,
+        'comments': comments,
+        'form': form,
+    })
 
 
 @login_required
@@ -125,51 +92,19 @@ def add_comment(request, suggestion_id):
             comment.suggestion = suggestion
             comment.user = request.user
             comment.save()
-            return redirect('suggestion_detail', suggestion_id=suggestion.id)  # 🛠 Исправлено!
+            return redirect('suggestion_detail', suggestion_id=suggestion.id)
 
-    else:
-        form = CommentForm()
+    return redirect('suggestion_detail', suggestion_id=suggestion.id)
 
-    return render(request, 'fss/suggestion_detail.html', {
-        'suggestion': suggestion,
-        'comments': suggestion.comments.all(),
-        'form': form,
-    })
 
 @login_required
-def user_suggestions(request):
-    suggestions = Suggestion.objects.filter(user=request.user)
-    return render(request, 'fss/my_suggestions.html', {'suggestions': suggestions})
-
-def my_suggestions(request):
-    user_suggestions = Suggestion.objects.filter(user=request.user)
-    return render(request, 'fss/my_suggestions.html', {'suggestions': user_suggestions})
-
-@login_required
-def edit_suggestion(request, suggestion_id):
-    suggestion = get_object_or_404(Suggestion, id=suggestion_id)
-
-
-    # if suggestion.author != request.user:
-    #     raise PermissionDenied("Вы не можете редактировать это предложение.")
-
-    if request.method == 'POST':
-        form = SuggestionForm(request.POST, instance=suggestion)
-        if form.is_valid():
-            form.save()
-            return redirect('fss/my_suggestions', suggestion_id=suggestion.id)
-    else:
-        form = SuggestionForm(instance=suggestion)
-
-    return render(request, 'fss/edit_suggestion.html', {'form': form, 'suggestion': suggestion})
-
 def create_suggestion(request):
     if request.method == 'POST':
         form = SuggestionForm(request.POST)
         if form.is_valid():
             suggestion = form.save(commit=False)
-            suggestion.user = request.user  # Привязываем к текущему пользователю
-            suggestion.status = Status.objects.get(name='draft')  # Статус "Черновик"
+            suggestion.user = request.user
+            suggestion.status = Status.objects.get(name='draft')
             suggestion.save()
             return redirect('my_suggestions')
     else:
@@ -177,10 +112,11 @@ def create_suggestion(request):
     return render(request, 'fss/suggestion_form.html', {'form': form})
 
 
+@login_required
 def edit_suggestion(request, pk):
     suggestion = get_object_or_404(Suggestion, pk=pk, user=request.user)
     if suggestion.status.name != 'draft':
-        return redirect('fss/my_suggestions')  # Запрещаем редактирование, если это не черновик
+        return redirect('my_suggestions')
 
     if request.method == 'POST':
         form = SuggestionForm(request.POST, instance=suggestion)
@@ -192,15 +128,147 @@ def edit_suggestion(request, pk):
     return render(request, 'fss/suggestion_form.html', {'form': form})
 
 
+@login_required
 def submit_suggestion(request, pk):
     suggestion = get_object_or_404(Suggestion, pk=pk, user=request.user)
     if suggestion.status.name == 'draft':
-        suggestion.status = Status.objects.get(name='submitted')  # Меняем статус на "В ожидании"
+        suggestion.status = Status.objects.get(name='submitted')
         suggestion.save()
     return redirect('my_suggestions')
 
+
+@login_required
+def moderator_panel(request):
+    suggestions = Suggestion.objects.select_related('user', 'status').order_by('-id')
+
+    status_filter = request.GET.get('status')
+    user_filter = request.GET.get('user')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    if status_filter:
+        suggestions = suggestions.filter(status__name=status_filter)
+    if user_filter:
+        suggestions = suggestions.filter(user__username__icontains=user_filter)
+    if start_date:
+        suggestions = suggestions.filter(date_create__gte=parse_date(start_date))
+    if end_date:
+        suggestions = suggestions.filter(date_create__lte=parse_date(end_date))
+
+    paginator = Paginator(suggestions, 10)
+    page = request.GET.get('page')
+    suggestions_page = paginator.get_page(page)
+
+    return render(request, 'fss/moderator_panel.html', {
+        'suggestions': suggestions_page,
+        'status_filter': status_filter,
+        'user_filter': user_filter,
+        'start_date': start_date,
+        'end_date': end_date,
+    })
+
+
+@login_required
+def my_suggestions(request):
+    user_suggestions_list = Suggestion.objects.filter(user=request.user).order_by('-id')
+    paginator = Paginator(user_suggestions_list, 5)
+    page = request.GET.get('page')
+    suggestions = paginator.get_page(page)
+    return render(request, 'fss/my_suggestions.html', {'suggestions': suggestions})
+
+
+@login_required
+def reject_suggestion(request):
+    if request.method == 'POST':
+        suggestion_id = request.POST.get('suggestion_id')
+        reason = request.POST.get('reason')
+        action = request.POST.get('action')
+
+        try:
+            suggestion = Suggestion.objects.get(id=suggestion_id)
+            status_obj = Status.objects.get(name=action)
+            suggestion.status = status_obj
+            suggestion.save()
+
+            Comment.objects.create(
+                suggestion=suggestion,
+                user=request.user,
+                text=reason
+            )
+
+            return JsonResponse({
+                'success': True,
+                'new_status': status_obj.get_name_display(),
+                'status_class': get_status_class(status_obj.name),
+            })
+        except (Suggestion.DoesNotExist, Status.DoesNotExist):
+            return JsonResponse({'success': False, 'error': 'Invalid data'})
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+
+@login_required
+def approve_suggestion(request):
+    if request.method == "POST":
+        suggestion_id = request.POST.get("suggestion_id")
+        status_name = request.POST.get("status")
+        comment = request.POST.get("comment", "")
+
+        # Проверяем наличие предложения
+        suggestion = get_object_or_404(Suggestion, id=suggestion_id)
+
+        # Проверяем наличие статуса
+        try:
+            status = Status.objects.get(name=status_name)
+        except Status.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Статус не найден"}, status=400)
+
+        # Обновляем статус предложения
+        suggestion.status = status
+        suggestion.save()
+
+        # Добавляем комментарий, если он есть
+        if comment:
+            Comment.objects.create(
+                suggestion=suggestion,
+                user=request.user,
+                text=comment
+            )
+
+        # Создаем уведомление для автора предложения
+        Notification.objects.create(
+            user=suggestion.user,
+            message=f"Статус вашего предложения «{suggestion.title}» изменён на «{status.get_name_display()}»."
+        )
+
+        # Возвращаем успешный ответ с данными
+        return JsonResponse({
+            "success": True,
+            "new_status": status.get_name_display(),
+            "status_class": get_status_class(status.name),  # Если у тебя есть эта функция, возвращающая CSS-классы
+        })
+
+    return JsonResponse({"success": False, "error": "Метод не разрешен"}, status=405)
+
+
+@login_required
+def notifications_view(request):
+    # Если использовал related_name="notifications" в модели Notification
+    notifications = request.user.notifications.order_by('-created_at')
+
+    # Если использовал notification_set (без указания related_name)
+    # notifications = request.user.notification_set.order_by('-created_at')
+
+    context = {
+        'notifications': notifications
+    }
+    return render(request, 'fss/notifications.html', context)
+
+@login_required
+def unread_notification_count(request):
+    count = Notification.objects.filter(user=request.user, is_read=False).count()
+    return JsonResponse({'unread_count': count})
+
 def get_status_class(status_name):
-    """Возвращает класс для отображения статуса"""
     status_classes = {
         'draft': 'bg-secondary',
         'submitted': 'bg-primary',
@@ -212,55 +280,3 @@ def get_status_class(status_name):
         'completed': 'bg-success',
     }
     return status_classes.get(status_name, 'bg-warning')
-
-
-def reject_suggestion(request):
-    if request.method == "POST":
-        suggestion_id = request.POST.get("suggestion_id")
-        reason = request.POST.get("reason")
-        action = request.POST.get("action")
-
-        suggestion = get_object_or_404(Suggestion, id=suggestion_id)
-
-        # Получаем статус "archived" или "draft" из модели Status
-        if action == "archive":
-            status = get_object_or_404(Status, name="archived")
-        elif action == "draft":
-            status = get_object_or_404(Status, name="draft")
-        else:
-            return JsonResponse({"success": False, "error": "Invalid action"})
-
-        # Устанавливаем новый статус и комментарий
-        suggestion.status = status
-        suggestion.moderator_comment = reason
-        suggestion.save()
-
-        return JsonResponse({"success": True})
-
-    return JsonResponse({"success": False})
-
-
-@login_required
-def approve_suggestion(request):
-    if request.method == "POST":
-        suggestion_id = request.POST.get("suggestion_id")
-        status_name = request.POST.get("status")
-        comment = request.POST.get("comment", "")
-
-        # Получаем объекты Suggestion и Status или возвращаем 404
-        suggestion = get_object_or_404(Suggestion, id=suggestion_id)
-        status = get_object_or_404(Status, name=status_name)
-
-        # Обновляем статус и комментарий модератора
-        suggestion.status = status
-        suggestion.moderator_comment = comment
-        suggestion.moderator = request.user
-        suggestion.save()
-
-        return JsonResponse({
-            "success": True,
-            "new_status": status.get_name_display(),
-            "status_class": get_status_class(status.name)
-        })
-
-    return JsonResponse({"success": False, "error": "Метод не разрешен"}, status=405)
