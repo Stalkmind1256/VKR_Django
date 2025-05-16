@@ -180,7 +180,7 @@ def create_suggestion(request):
 def edit_suggestion(request, pk):
     suggestion = get_object_or_404(Suggestion, pk=pk, user=request.user)
     if suggestion.status.name != 'draft':
-        return redirect('fss/my_suggestions')  # Запрещаем редактирование, если это не черновик
+        return redirect('fss/my_suggestions')
 
     if request.method == 'POST':
         form = SuggestionForm(request.POST, instance=suggestion)
@@ -230,7 +230,7 @@ def reject_suggestion(request):
         else:
             return JsonResponse({"success": False, "error": "Invalid action"})
 
-        # Устанавливаем новый статус и комментарий
+
         suggestion.status = status
         suggestion.moderator_comment = reason
         suggestion.save()
@@ -247,7 +247,7 @@ def approve_suggestion(request):
         status_name = request.POST.get("status")
         comment = request.POST.get("comment", "")
 
-        # Получаем объекты Suggestion и Status или возвращаем 404
+
         suggestion = get_object_or_404(Suggestion, id=suggestion_id)
         status = get_object_or_404(Status, name=status_name)
 
