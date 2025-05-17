@@ -155,3 +155,10 @@ class Notification(models.Model):
 #
 #     def __str__(self):
 #         return f"{self.user.username} - {self.role_name}"
+class SuggestionRating(models.Model):
+    suggestion = models.ForeignKey(Suggestion, on_delete=models.CASCADE, related_name="ratings")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    rating = models.IntegerField()  # от 1 до 5, например
+
+    class Meta:
+        unique_together = ('suggestion', 'user')  # один пользователь — одна оценка

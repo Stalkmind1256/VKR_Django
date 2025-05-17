@@ -3,7 +3,8 @@ from . import views
 from django.contrib.auth import views as auth_views
 from django.shortcuts import redirect
 from .views import suggestion_detail, add_comment
-
+from .views import suggestions_stats_api
+from .views import stats
 
 def redirect_home(request):
     return redirect('/home')
@@ -31,4 +32,6 @@ urlpatterns = [
     path('moderator/', views.moderator_panel, name='moderator_panel'),
     path('notifications/', views.notifications_view, name='notifications'),
 path('ajax/unread-count/', views.unread_notification_count, name='unread_notification_count'),
+    path('api/stats/', suggestions_stats_api, name='suggestions_stats_api'),
+    path('stats/', stats, name='stats'),
 ]

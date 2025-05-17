@@ -1,21 +1,40 @@
 {% extends 'fss/base.html' %}
 {% load static %}
 
-
 {% block content %}
-    <h1>Добро пожаловать на главную страницу!</h1>
-<h4><p><b>Автоматизированная система учета и предложений ШГПУ</b> — это современная веб-платформа, предназначенная для автоматизации процессов учета предложений, жалоб и отзывов от преподавателей и сотрудников. Система позволяет эффективно собирать, обрабатывать и хранить информацию о предложениях, что помогает улучшать качество образовательного процесса и внутреннюю организацию работы университета. </p></h4>
-<!--     {% if user.is_authenticated %}-->
-<!--        <a href="#">Logout</a>-->
-<!--     {% else %}-->
-<!--     <a href="#">Login</a>-->
-<!--    {% endif %}-->
-    {% if messages %}
-        <ul class="message">
-            {% for message in messages %}
-                <li class="alert {{ message.tags }}">{{ message }}</li>
-            {% endfor %}
-        </ul>
- {% endif %}
-{% endblock %}
 
+{% if messages %}
+    <ul class="message">
+        {% for message in messages %}
+            <li class="alert {{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<!-- Блок лучших предложений -->
+<div class="mt-5">
+    <h3 class="mb-4 text-center">Лучшие предложения</h3>
+    {% if best_suggestions %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for suggestion in best_suggestions %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ suggestion.title }}</h5>
+                            <p class="card-text">{{ suggestion.description|truncatewords:25 }}</p>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between align-items-center bg-white border-0">
+                            <small class="text-muted">{{ suggestion.status.get_name_display }}</small>
+                            <small class="text-muted">{{ suggestion.date_create|date:"d.m.Y" }}</small>
+                            <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-outline-success btn-sm">Подробнее</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted text-center">Нет подходящих предложений для отображения.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

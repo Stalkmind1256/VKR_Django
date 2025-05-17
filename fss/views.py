@@ -10,13 +10,22 @@ from django.views.decorators.http import require_POST
 from .models import Category, Divisions, Suggestion, Status, Notification, Comment
 from .forms import SuggestionForm, CommentForm
 from django.contrib.auth.forms import UserCreationForm
+from django.db.models import Count
+from .models import Suggestion
 
 
-@login_required
 def home(request):
-    unread_count = request.user.notifications.filter(is_read=False).count()
-    return render(request, 'fss/home.html', {'unread_count': unread_count})
+    unread_count = 0
+    if request.user.is_authenticated:
+        unread_count = request.user.notifications.filter(is_read=False).count()
 
+    # Получить предложения со статусами "approved" или "completed"
+    best_suggestions = Suggestion.objects.filter(status__name__in=['approved', 'completed']).order_by('-date_create')[:5]
+
+    return render(request, 'fss/home.html', {
+        'unread_count': unread_count,
+        'best_suggestions': best_suggestions
+    })
 
 def password_reset(request):
     return render(request, 'registration/password_reset.html')
@@ -280,3 +289,15 @@ def get_status_class(status_name):
         'completed': 'bg-success',
     }
     return status_classes.get(status_name, 'bg-warning')
+
+def suggestions_stats_api(request):
+    qs = Suggestion.objects.values('status__name').annotate(count=Count('id'))
+
+    data = {item['status__name']: item['count'] for item in qs}
+
+    return JsonResponse(data)
+
+def stats(request):
+    # Здесь можно передать данные в шаблон, если нужно
+    return render(request, 'fss/stats.html')
+
