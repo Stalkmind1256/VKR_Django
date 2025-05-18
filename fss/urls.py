@@ -22,7 +22,7 @@ urlpatterns = [
     path('suggestion/<int:suggestion_id>/comment/', add_comment, name='add_comment'),
     path('my_suggestions/', views.my_suggestions, name='my_suggestions'),
 
-    # Оставляем только один edit
+
     path('suggestions/<int:pk>/edit/', views.edit_suggestion, name='edit_suggestion'),
 
     path('suggestions/create/', views.create_suggestion, name='create_suggestion'),
@@ -31,7 +31,9 @@ urlpatterns = [
     path('approve-suggestion/', views.approve_suggestion, name='approve_suggestion'),
     path('moderator/', views.moderator_panel, name='moderator_panel'),
     path('notifications/', views.notifications_view, name='notifications'),
-path('ajax/unread-count/', views.unread_notification_count, name='unread_notification_count'),
+    path('ajax/unread-count/', views.unread_notification_count, name='unread_notification_count'),
     path('api/stats/', suggestions_stats_api, name='suggestions_stats_api'),
     path('stats/', stats, name='stats'),
+    path('export/csv/', views.export_suggestions_csv, name='export_suggestions_csv'),
+    path('export/excel/', views.export_suggestions_excel, name='export_suggestions_excel'),
 ]

@@ -3,16 +3,17 @@ from django.utils.dateparse import parse_date
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_POST
+from openpyxl.workbook import Workbook
 
 from .models import Category, Divisions, Suggestion, Status, Notification, Comment
 from .forms import SuggestionForm, CommentForm
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Count
 from .models import Suggestion
-
+from django.utils.timezone import is_aware
 
 def home(request):
     unread_count = 0
@@ -26,9 +27,6 @@ def home(request):
         'unread_count': unread_count,
         'best_suggestions': best_suggestions
     })
-
-def password_reset(request):
-    return render(request, 'registration/password_reset.html')
 
 
 def register(request):
@@ -207,6 +205,7 @@ def reject_suggestion(request):
 
             return JsonResponse({
                 'success': True,
+                'id': suggestion.id,
                 'new_status': status_obj.get_name_display(),
                 'status_class': get_status_class(status_obj.name),
             })
@@ -252,8 +251,9 @@ def approve_suggestion(request):
         # Возвращаем успешный ответ с данными
         return JsonResponse({
             "success": True,
+            "id": suggestion.id,
             "new_status": status.get_name_display(),
-            "status_class": get_status_class(status.name),  # Если у тебя есть эта функция, возвращающая CSS-классы
+            "status_class": get_status_class(status.name),
         })
 
     return JsonResponse({"success": False, "error": "Метод не разрешен"}, status=405)
@@ -301,3 +301,47 @@ def stats(request):
     # Здесь можно передать данные в шаблон, если нужно
     return render(request, 'fss/stats.html')
 
+@login_required
+def export_suggestions_csv(request):
+    import csv
+    from django.http import HttpResponse
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="suggestions.csv"'
+
+    response.write('\ufeff')
+
+    writer = csv.writer(response)
+    writer.writerow(['ID', 'Пользователь', 'Заголовок', 'Статус', 'Дата'])
+
+    for s in Suggestion.objects.all():
+        writer.writerow([s.id, s.user.username, s.title, s.status.get_name_display(), s.date_create])
+
+    return response
+
+# Excel экспорт
+@login_required
+def export_suggestions_excel(request):
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = 'attachment; filename="suggestions.xlsx"'
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Предложения"
+
+    ws.append(['ID', 'Пользователь', 'Название', 'Статус', 'Дата создания'])
+
+    for s in Suggestion.objects.all():
+        date_naive = s.date_create.replace(tzinfo=None) if is_aware(s.date_create) else s.date_create
+        ws.append([
+            s.id,
+            s.user.username,
+            s.title,
+            s.status.get_name_display(),
+            date_naive,
+        ])
+
+    wb.save(response)
+    return response
