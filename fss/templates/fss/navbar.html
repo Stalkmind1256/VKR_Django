@@ -1,58 +1,95 @@
 {% load static %}
+
 <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #4CAF50;">
   <div class="container">
-      <a class="navbar-brand d-flex align-items-center fw-bold text-white"
-   href="/home"
-   style="padding-top: 1rem; padding-bottom: 1rem;">
-    <i class="bi bi-boxes me-2"></i> Автоматизированная система учета
-</a>
+    <!-- Название системы -->
+    <a class="navbar-brand d-flex align-items-center fw-bold text-white" href="{% url 'home' %}" style="padding-top: 1rem; padding-bottom: 1rem;">
+      <i class="bi bi-boxes me-2"></i> Автоматизированная система учета
+    </a>
 
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+    <!-- Кнопка-меню для мобильных -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+      aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item">
-                  <a class="nav-link text-white" href="#"><i class="bi bi-envelope me-1"></i> Контакты</a>
-              </li>
-              <li class="nav-item">
-                  <a class="nav-link text-white" href="{% url 'my_suggestions' %}">
-                      <i class="bi bi-lightbulb me-1"></i> Мои предложения
-                  </a>
-              </li>
+    <!-- Меню -->
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link text-white" href="#"><i class="bi bi-envelope me-1"></i> Контакты</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="{% url 'my_suggestions' %}">
+            <i class="bi bi-lightbulb me-1"></i> Мои предложения
+          </a>
+        </li>
+        {% if user.is_superuser %}
+        <li class="nav-item">
+          <a class="nav-link text-white" href="{% url 'suggestion_list' %}">
+            <i class="bi bi-database me-1"></i> Просмотр базы
+          </a>
+        </li>
+        {% endif %}
+      </ul>
 
-              {% if user.is_superuser %}
-              <li class="nav-item">
-                   <a class="nav-link text-white" href="/list">
-                       <i class="bi bi-database me-1"></i> Просмотр базы
-                   </a>
-              </li>
-              {% endif %}
-          </ul>
+      <!-- Правая часть: Уведомления и профиль -->
+      <div class="navbar-nav">
+        {% if user.is_authenticated %}
+        <div class="d-flex align-items-center">
+          <!-- 🔔 Уведомления -->
+          <a class="nav-link position-relative me-3 text-white" href="{% url 'notifications' %}" title="Уведомления">
+            <i class="bi bi-bell fs-5"></i>
+            <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+              0
+            </span>
+          </a>
 
-          <!-- Профиль пользователя -->
-          <div class="navbar-nav">
-            {% if user.is_authenticated %}
-                <div class="d-flex align-items-center">
-                    <img src="{% static 'images/avatar_placeholder.jpg' %}" alt="Аватар" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
-                    <div class="dropdown">
-                        <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            {{ user.first_name|default:"Иван" }} {{ user.last_name|default:"Иванов" }}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'logout' %}">Выйти</a></li>
-                        </ul>
-                    </div>
-                </div>
-            {% else %}
-                <a class="btn btn-light text-dark" href="{% url 'login' %}">
-                    <i class="bi bi-box-arrow-in-right"></i> Войти
-                </a>
-            {% endif %}
+          <!-- 👤 Аватар и имя -->
+          <img src="{% static 'images/avatar_placeholder.jpg' %}" alt="Аватар"
+            class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+          <div class="dropdown">
+            <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown"
+              aria-expanded="false">
+              {{ user.first_name|default:"Иван" }} {{ user.last_name|default:"Иванов" }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{% url 'logout' %}">Выйти</a></li>
+            </ul>
+          </div>
         </div>
+        {% else %}
+        <a class="btn btn-light text-dark" href="{% url 'login' %}">
+          <i class="bi bi-box-arrow-in-right"></i> Войти
+        </a>
+        {% endif %}
       </div>
+    </div>
   </div>
 </nav>
+
+<!-- ✅ AJAX автообновление уведомлений -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+  function updateNotificationCount() {
+    $.ajax({
+      url: "{% url 'unread_notification_count' %}",
+      method: "GET",
+      success: function (data) {
+        const badge = document.getElementById("notification-badge");
+        if (data.unread_count > 0) {
+          badge.classList.remove("d-none");
+          badge.textContent = data.unread_count;
+        } else {
+          badge.classList.add("d-none");
+        }
+      }
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    updateNotificationCount();
+    setInterval(updateNotificationCount, 10000);  // обновление каждые 10 секунд
+  });
+</script>

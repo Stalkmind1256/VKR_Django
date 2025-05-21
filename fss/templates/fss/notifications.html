@@ -1,0 +1,16 @@
+{% extends 'fss/base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Уведомления</h2>
+    <ul class="list-group">
+        {% for note in notifications %}
+            <li class="list-group-item">
+                <small class="text-muted float-end">{{ note.created_at|date:"d M Y H:i" }}</small>
+                {{ note.message }}
+            </li>
+        {% empty %}
+            <li class="list-group-item text-muted">Нет уведомлений.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

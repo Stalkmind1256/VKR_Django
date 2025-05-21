@@ -16,30 +16,68 @@
                 <div class="list-group-item list-group-item-action">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h4 class="mb-2">{{ suggestion.title }}</h4>
-                            <p class="mb-3">{{ suggestion.description }}</p>
+                            <h4 class="mb-2">
+                                <a href="{% url 'suggestion_detail' suggestion.id %}" class="text-decoration-none">
+                                    {{ suggestion.title }}
+                                </a>
+                            </h4>
+                            <p class="mb-3">{{ suggestion.description|truncatewords:25 }}</p>
                             <small class="text-muted">
-                                Статус: {{ suggestion.status }}
+                                Статус:
+                                <span class="badge
+                                    {% if suggestion.status.name == 'draft' %} bg-secondary
+                                    {% elif suggestion.status.name == 'submitted' %} bg-primary
+                                    {% elif suggestion.status.name == 'approved' %} bg-success
+                                    {% elif suggestion.status.name == 'rejected' %} bg-danger
+                                    {% elif suggestion.status.name == 'in_progress' %} bg-warning
+                                    {% elif suggestion.status.name == 'completed' %} bg-success
+                                    {% else %} bg-light text-dark {% endif %}">
+                                    {{ suggestion.status.get_name_display }}
+                                </span>
                             </small>
                         </div>
                         <div class="btn-group">
                             {% if suggestion.status.name == 'draft' %}
-                                <a href="{% url 'edit_suggestion' suggestion.id %}" class="btn btn-warning btn-sm">
-                                    Редактировать
-                                </a>
-                                <a href="{% url 'submit_suggestion' suggestion.id %}" class="btn btn-success btn-sm">
-                                    Отправить
-                                </a>
+                                <a href="{% url 'edit_suggestion' suggestion.id %}" class="btn btn-warning btn-sm">Редактировать</a>
+                                <a href="{% url 'submit_suggestion' suggestion.id %}" class="btn btn-success btn-sm">Отправить</a>
                             {% else %}
-                                <span class="badge bg-secondary">
-                                    {{ suggestion.status }}
-                                </span>
+                                <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-outline-secondary btn-sm">Просмотр</a>
                             {% endif %}
                         </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
+
+        <!-- Навигация по страницам -->
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if suggestions.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ suggestions.previous_page_number }}">&laquo;</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                {% endif %}
+
+                {% for num in suggestions.paginator.page_range %}
+                    {% if suggestions.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num >= suggestions.number|add:'-2' and num <= suggestions.number|add:'2' %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if suggestions.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ suggestions.next_page_number }}">&raquo;</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+
     {% else %}
         <div class="alert alert-info text-center">
             У вас пока нет предложений.
