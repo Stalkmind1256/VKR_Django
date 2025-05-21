@@ -1,0 +1,156 @@
+{% extends 'fss/base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-5 text-center text-primary">Статистика предложений</h2>
+
+    <div class="d-flex justify-content-center flex-wrap gap-4">
+        <!-- Гистограмма -->
+        <div style="flex: 1 1 45%; min-width: 350px; max-width: 500px; height: 400px;">
+            <h5 class="text-center mb-2">Гистограмма по статусам</h5>
+            <canvas id="barChart" width="500" height="400"></canvas>
+        </div>
+
+        <!-- Круговая диаграмма -->
+        <div style="flex: 1 1 45%; min-width: 350px; max-width: 500px; height: 400px;">
+            <h5 class="text-center mb-2">Круговая диаграмма</h5>
+            <canvas id="pieChart" width="500" height="400"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const statusLabels = {
+        draft: "Черновик",
+        submitted: "Отправлено",
+        approved: "Подтверждено",
+        rejected: "Отклонено",
+        archived: "Архив",
+        preparing: "Готовится",
+        in_progress: "В работе",
+        completed: "Выполнено"
+    };
+
+    const colors = {
+        draft: "#6c757d",
+        submitted: "#0d6efd",
+        approved: "#198754",
+        rejected: "#dc3545",
+        archived: "#343a40",
+        preparing: "#0dcaf0",
+        in_progress: "#ffc107",
+        completed: "#28a745"
+    };
+
+    let barChart, pieChart;
+
+    function darkenColor(color, factor) {
+        const f = parseInt(color.slice(1), 16);
+        const r = f >> 16, g = (f >> 8) & 0x00FF, b = f & 0x0000FF;
+        return `rgb(${Math.floor(r * (1 - factor))}, ${Math.floor(g * (1 - factor))}, ${Math.floor(b * (1 - factor))})`;
+    }
+
+    function loadStats() {
+        fetch("{% url 'suggestions_stats_api' %}")
+            .then(response => response.json())
+            .then(data => {
+                const labels = [];
+                const counts = [];
+                const bgColors = [];
+
+                for (const [key, value] of Object.entries(data)) {
+                    labels.push(statusLabels[key] || key);
+                    counts.push(value);
+                    bgColors.push(colors[key] || "#999");
+                }
+
+                const borderColors = bgColors.map(c => darkenColor(c, 0.2));
+
+                // BAR
+                if (!barChart) {
+                    const ctxBar = document.getElementById("barChart").getContext("2d");
+                    barChart = new Chart(ctxBar, {
+                        type: 'bar',
+                        data: {
+                            labels,
+                            datasets: [{
+                                label: 'Количество предложений',
+                                data: counts,
+                                backgroundColor: bgColors,
+                                borderColor: borderColors,
+                                borderWidth: 1,
+                                borderRadius: 5
+                            }]
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: ctx => `${ctx.parsed.y} предложений`
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: { beginAtZero: true, title: { display: true, text: 'Количество' } },
+                                x: { title: { display: true, text: 'Статус' } }
+                            }
+                        }
+                    });
+                } else {
+                    barChart.data.labels = labels;
+                    barChart.data.datasets[0].data = counts;
+                    barChart.update();
+                }
+
+                // PIE
+                if (!pieChart) {
+                    const ctxPie = document.getElementById("pieChart").getContext("2d");
+                    pieChart = new Chart(ctxPie, {
+                        type: 'pie',
+                        data: {
+                            labels,
+                            datasets: [{
+                                data: counts,
+                                backgroundColor: bgColors,
+                                borderColor: "#fff",
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            maintainAspectRatio: false,
+                            responsive: true,
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: ctx => {
+                                            const total = counts.reduce((a, b) => a + b, 0);
+                                            const percent = ((ctx.parsed / total) * 100).toFixed(1);
+                                            return `${ctx.label}: ${ctx.parsed} (${percent}%)`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    pieChart.data.labels = labels;
+                    pieChart.data.datasets[0].data = counts;
+                    pieChart.update();
+                }
+            })
+            .catch(error => {
+                console.error("Ошибка загрузки статистики:", error);
+            });
+    }
+
+    loadStats();               // Первая загрузка
+    setInterval(loadStats, 30000); // Автообновление раз в 30 сек
+});
+</script>
+{% endblock %}
