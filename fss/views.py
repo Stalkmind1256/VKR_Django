@@ -1,3 +1,6 @@
+import csv
+
+from django.contrib.auth.hashers import make_password
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.dateparse import parse_date
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
@@ -8,12 +11,13 @@ from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_POST
 from openpyxl.workbook import Workbook
 
-from .models import Category, Divisions, Suggestion, Status, Notification, Comment
+from .models import Category, Divisions, Suggestion, Status, Notification, Comment, CustomUser
 from .forms import SuggestionForm, CommentForm
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Count
 from .models import Suggestion
 from django.utils.timezone import is_aware
+import openpyxl
 
 def home(request):
     unread_count = 0
@@ -112,6 +116,8 @@ def create_suggestion(request):
             suggestion = form.save(commit=False)
             suggestion.user = request.user
             suggestion.status = Status.objects.get(name='draft')
+            # Подставляем подразделение из пользователя:
+            suggestion.division = request.user.division
             suggestion.save()
             return redirect('my_suggestions')
     else:
@@ -345,3 +351,30 @@ def export_suggestions_excel(request):
 
     wb.save(response)
     return response
+
+
+def import_users(request):
+    if request.method == 'POST':
+        excel_file = request.FILES['file']
+        wb = openpyxl.load_workbook(excel_file)
+        sheet = wb.active
+
+        for row in sheet.iter_rows(min_row=2, values_only=True):
+            last_name, first_name, patronymic, division_name, username, raw_password = row
+
+            division, _ = Divisions.objects.get_or_create(name=division_name)
+
+            if not CustomUser.objects.filter(username=username).exists():
+                CustomUser.objects.create(
+                    username=username,
+                    first_name=first_name,
+                    last_name=last_name,
+                    password=make_password(raw_password),
+                    division=division,
+                    patronymic=patronymic
+                )
+
+        messages.success(request, "Пользователи успешно импортированы.")
+        return redirect('import_users')
+
+    return render(request, 'fss/import_users.html')

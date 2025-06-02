@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
 from django.shortcuts import redirect
-from .views import suggestion_detail, add_comment
+from .views import suggestion_detail, add_comment, import_users
 from .views import suggestions_stats_api
 from .views import stats
 
@@ -36,4 +36,5 @@ urlpatterns = [
     path('stats/', stats, name='stats'),
     path('export/csv/', views.export_suggestions_csv, name='export_suggestions_csv'),
     path('export/excel/', views.export_suggestions_excel, name='export_suggestions_excel'),
+    path('import-users/', import_users, name='import_users'),
 ]

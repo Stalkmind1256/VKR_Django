@@ -25,11 +25,11 @@
             <div class="invalid-feedback">Пожалуйста, выберите категорию.</div>
         </div>
 
-        <div class="mb-3">
-            <label  class="form-label">Подразделение</label>
-            {{ form.division }}
-            <div class="invalid-feedback">Пожалуйста, выберите подразделение.</div>
-        </div>
+<!--        <div class="mb-3">-->
+<!--            <label  class="form-label">Подразделение</label>-->
+<!--            {{ form.division }}-->
+<!--            <div class="invalid-feedback">Пожалуйста, выберите подразделение.</div>-->
+<!--        </div>-->
 
         <button type="submit" class="btn btn-primary">
             {% if form.instance.pk %}Сохранить изменения{% else %}Создать черновик{% endif %}

@@ -49,7 +49,7 @@ class CommentForm(forms.ModelForm):
 class SuggestionForm(forms.ModelForm):
     class Meta:
         model = Suggestion
-        fields = ['title', 'description', 'category', 'division']
+        fields = ['title', 'description', 'category']  # убрали 'division'
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -63,13 +63,8 @@ class SuggestionForm(forms.ModelForm):
             'category': forms.Select(attrs={
                 'class': 'form-select'
             }),
-            'division': forms.Select(attrs={
-                'class': 'form-select'
-            }),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Динамически загружаем категории и подразделения
         self.fields['category'].queryset = Category.objects.all()
-        self.fields['division'].queryset = Divisions.objects.all()

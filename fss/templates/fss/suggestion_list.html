@@ -5,100 +5,104 @@
 <div class="container-fluid">
   <div class="row">
     <!-- Sidebar -->
-    <nav class="col-md-3 col-lg-2 d-md-block bg-white sidebar shadow-sm vh-100 position-fixed">
-      <div class="p-3">
-        <h5 class="text-center text-success">Модератор</h5>
-        <hr>
-        <ul class="nav flex-column">
-          <li class="nav-item mb-2">
-            <a class="nav-link text-dark" href="/stats"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
-          </li>
-          <li class="nav-item mb-2">
-            <a class="nav-link text-dark" href="#"><i class="bi bi-person-lines-fill me-2"></i> Пользователи</a>
-          </li>
-          <li class="nav-item mb-2">
-            <a class="nav-link text-dark" href="#"><i class="bi bi-flag-fill me-2"></i> Жалобы</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link text-dark" href="#"><i class="bi bi-gear me-2"></i> Настройки</a>
-          </li>
-        </ul>
-      </div>
+    <nav class="col-md-3 col-lg-2 d-md-block vh-100 position-fixed ps-3 pt-4">
+      <h5 class="text-success mb-4 fw-semibold">Модератор</h5>
+      <ul class="nav flex-column gap-3">
+        <li class="nav-item">
+          <a href="/stats" class="nav-link d-flex align-items-center gap-2 text-secondary fw-medium fs-5">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link d-flex align-items-center gap-2 text-secondary fw-medium fs-5">
+            <i class="bi bi-people-fill"></i>
+            <span>Пользователи</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link d-flex align-items-center gap-2 text-secondary fw-medium fs-5">
+            <i class="bi bi-flag-fill"></i>
+            <span>Жалобы</span>
+          </a>
+        </li>
+        <li class="nav-item mt-auto">
+          <a href="{% url 'import_users' %}" class="nav-link d-flex align-items-center gap-2 text-secondary fw-medium fs-5">
+            <i class="bi bi-upload"></i>
+            <span>Импорт пользователей</span>
+          </a>
+        </li>
+      </ul>
     </nav>
 
-    <!-- Main -->
-    <main class="col-md-9 ms-sm-auto col-lg-10 offset-md-3 px-md-4">
-      <div class="pt-4">
-        <h2 class="text-success mb-4">Панель модератора</h2>
+    <!-- Main content -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 offset-md-3 px-4 py-4">
+      <h2 class="text-success mb-4 fw-semibold">Панель модератора</h2>
 
-        <div class="card rounded-4 shadow-sm border-0 mb-4">
-          <div class="card-body">
-            <h4 class="card-title mb-4">Список предложений</h4>
+      <div class="mb-4">
+        <h4 class="mb-3">Список предложений</h4>
 
+        <div class="d-flex justify-content-end mb-3 gap-2">
+          <a href="{% url 'export_suggestions_csv' %}" class="btn btn-outline-success d-flex align-items-center gap-1">
+            <i class="bi bi-filetype-csv"></i> Экспорт CSV
+          </a>
+          <a href="{% url 'export_suggestions_excel' %}" class="btn btn-outline-primary d-flex align-items-center gap-1">
+            <i class="bi bi-file-earmark-excel"></i> Экспорт Excel
+          </a>
+        </div>
 
-              <div class="d-flex justify-content-end mb-3">
-  <a href="{% url 'export_suggestions_csv' %}" class="btn btn-outline-success me-2">
-    <i class="bi bi-filetype-csv me-1"></i> Экспорт CSV
-  </a>
-  <a href="{% url 'export_suggestions_excel' %}" class="btn btn-outline-primary">
-    <i class="bi bi-file-earmark-excel me-1"></i> Экспорт Excel
-  </a>
-</div>
-
-            <div class="table-responsive">
-              <table class="table align-middle table-hover">
-                <thead class="table-success">
-                  <tr>
-                    <th>ID</th>
-                    <th>Пользователь</th>
-                    <th>Заголовок</th>
-                    <th>Статус</th>
-                    <th>Действия</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for suggestion in suggestions %}
-                  <tr>
-                    <td>{{ suggestion.id }}</td>
-                    <td>{{ suggestion.user.username }}</td>
-                    <td>{{ suggestion.title }}</td>
-                    <td class="status-cell" data-id="{{ suggestion.id }}">
-                      <span class="badge
-                        {% if suggestion.status.name == 'draft' %} bg-secondary
-                        {% elif suggestion.status.name == 'submitted' %} bg-primary
-                        {% elif suggestion.status.name == 'rejected' %} bg-danger
-                        {% elif suggestion.status.name == 'archived' %} bg-dark
-                        {% elif suggestion.status.name == 'approved' %} bg-success
-                        {% elif suggestion.status.name == 'preparing' %} bg-info
-                        {% elif suggestion.status.name == 'in_progress' %} bg-warning text-dark
-                        {% elif suggestion.status.name == 'completed' %} bg-success
-                        {% else %} bg-light text-dark border {% endif %}">
-                        {{ suggestion.status.get_name_display }}
-                      </span>
-                    </td>
-                    <td>
-                      <div class="btn-group" role="group">
-                        <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-outline-primary btn-sm" title="Подробнее">
-                          <i class="bi bi-eye"></i>
-                        </a>
-                        <button class="btn btn-outline-success btn-sm btn-approve" data-id="{{ suggestion.id }}" data-title="{{ suggestion.title }}" title="Принять">
-                          <i class="bi bi-check-circle"></i>
-                        </button>
-                        <button class="btn btn-outline-danger btn-sm btn-reject" data-id="{{ suggestion.id }}" data-title="{{ suggestion.title }}" title="Отклонить">
-                          <i class="bi bi-x-circle"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  {% empty %}
-                  <tr>
-                    <td colspan="5" class="text-center text-muted">Нет предложений для отображения.</td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
+        <div class="table-responsive">
+          <table class="table align-middle table-hover">
+            <thead class="table-success">
+              <tr>
+                <th>ID</th>
+                <th>Пользователь</th>
+                <th>Заголовок</th>
+                <th>Статус</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for suggestion in suggestions %}
+              <tr>
+                <td>{{ suggestion.id }}</td>
+                <td>{{ suggestion.user.username }}</td>
+                <td>{{ suggestion.title }}</td>
+                <td class="status-cell" data-id="{{ suggestion.id }}">
+                  <span class="badge
+                    {% if suggestion.status.name == 'draft' %} bg-secondary
+                    {% elif suggestion.status.name == 'submitted' %} bg-primary
+                    {% elif suggestion.status.name == 'rejected' %} bg-danger
+                    {% elif suggestion.status.name == 'archived' %} bg-dark
+                    {% elif suggestion.status.name == 'approved' %} bg-success
+                    {% elif suggestion.status.name == 'preparing' %} bg-info
+                    {% elif suggestion.status.name == 'in_progress' %} bg-warning text-dark
+                    {% elif suggestion.status.name == 'completed' %} bg-success
+                    {% else %} bg-light text-dark border {% endif %}">
+                    {{ suggestion.status.get_name_display }}
+                  </span>
+                </td>
+                <td>
+                  <div class="btn-group" role="group">
+                    <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-outline-primary btn-sm" title="Подробнее">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <button class="btn btn-outline-success btn-sm btn-approve" data-id="{{ suggestion.id }}" data-title="{{ suggestion.title }}" title="Принять">
+                      <i class="bi bi-check-circle"></i>
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm btn-reject" data-id="{{ suggestion.id }}" data-title="{{ suggestion.title }}" title="Отклонить">
+                      <i class="bi bi-x-circle"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5" class="text-center text-muted">Нет предложений для отображения.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
       </div>
     </main>
