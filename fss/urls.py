@@ -5,6 +5,7 @@ from django.shortcuts import redirect
 from .views import suggestion_detail, add_comment, import_users
 from .views import suggestions_stats_api
 from .views import stats
+from .views import user_management ,delete_user
 
 def redirect_home(request):
     return redirect('/home')
@@ -37,4 +38,9 @@ urlpatterns = [
     path('export/csv/', views.export_suggestions_csv, name='export_suggestions_csv'),
     path('export/excel/', views.export_suggestions_excel, name='export_suggestions_excel'),
     path('import-users/', import_users, name='import_users'),
+
+    path('users/', user_management, name='user_management'),
+    path('users/<int:user_id>/delete/', delete_user, name='delete_user'),
+
+
 ]

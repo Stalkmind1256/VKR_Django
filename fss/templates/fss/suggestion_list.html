@@ -6,7 +6,7 @@
   <div class="row">
     <!-- Sidebar -->
     <nav class="col-md-3 col-lg-2 d-md-block vh-100 position-fixed ps-3 pt-4">
-      <h5 class="text-success mb-4 fw-semibold">Модератор</h5>
+      <h5 class="text-success mb-4 fw-semibold">Администратор</h5>
       <ul class="nav flex-column gap-3">
         <li class="nav-item">
           <a href="/stats" class="nav-link d-flex align-items-center gap-2 text-secondary fw-medium fs-5">
@@ -15,7 +15,7 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="#" class="nav-link d-flex align-items-center gap-2 text-secondary fw-medium fs-5">
+         <a href="{% url 'user_management' %}" class="nav-link d-flex align-items-center gap-2 text-secondary fw-medium fs-5">
             <i class="bi bi-people-fill"></i>
             <span>Пользователи</span>
           </a>
@@ -37,7 +37,7 @@
 
     <!-- Main content -->
     <main class="col-md-9 ms-sm-auto col-lg-10 offset-md-3 px-4 py-4">
-      <h2 class="text-success mb-4 fw-semibold">Панель модератора</h2>
+      <h2 class="text-success mb-4 fw-semibold">Панель администратора</h2>
 
       <div class="mb-4">
         <h4 class="mb-3">Список предложений</h4>
@@ -58,6 +58,7 @@
                 <th>ID</th>
                 <th>Пользователь</th>
                 <th>Заголовок</th>
+                   <th>Подразделение</th>
                 <th>Статус</th>
                 <th>Действия</th>
               </tr>
@@ -68,6 +69,7 @@
                 <td>{{ suggestion.id }}</td>
                 <td>{{ suggestion.user.username }}</td>
                 <td>{{ suggestion.title }}</td>
+                <td>{{ suggestion.user.division.name}}</td>
                 <td class="status-cell" data-id="{{ suggestion.id }}">
                   <span class="badge
                     {% if suggestion.status.name == 'draft' %} bg-secondary

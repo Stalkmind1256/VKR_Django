@@ -7,6 +7,7 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_POST
 from openpyxl.workbook import Workbook
@@ -18,6 +19,8 @@ from django.db.models import Count
 from .models import Suggestion
 from django.utils.timezone import is_aware
 import openpyxl
+
+from .models import CustomUser
 
 def home(request):
     unread_count = 0
@@ -378,3 +381,32 @@ def import_users(request):
         return redirect('import_users')
 
     return render(request, 'fss/import_users.html')
+
+def user_management(request):
+    query = request.GET.get('q')
+    if query:
+        users = CustomUser.objects.filter(
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(middle_name__icontains=query) |
+            Q(department__icontains=query)
+        )
+    else:
+        users = CustomUser.objects.all()
+
+    return render(request, 'fss/users_admin.html', {
+        'users': users,
+        'query': query,
+    })
+
+
+@csrf_exempt
+def delete_user(request, user_id):
+    if request.method == "POST":
+        try:
+            user = CustomUser.objects.get(id=user_id)
+            user.delete()
+            return JsonResponse({"success": True})
+        except CustomUser.DoesNotExist:
+            return JsonResponse({"success": False, "error": "User not found"})
+    return JsonResponse({"success": False, "error": "Invalid request"})
