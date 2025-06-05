@@ -88,5 +88,19 @@
   document.addEventListener("DOMContentLoaded", function () {
     updateNotificationCount();
     setInterval(updateNotificationCount, 10000);
+
+    // Помечаем уведомления как прочитанные при клике на колокольчик
+    const bell = document.querySelector('a[href="{% url "notifications" %}"]');
+    bell?.addEventListener("click", function () {
+      fetch("{% url 'mark_notifications_read' %}", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]')?.value || "{{ csrf_token }}",
+          "X-Requested-With": "XMLHttpRequest"
+        }
+      }).then(() => {
+        document.getElementById("notification-badge").classList.add("d-none");
+      });
+    });
   });
 </script>

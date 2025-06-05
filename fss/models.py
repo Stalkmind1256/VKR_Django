@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
+from django.db.models import Avg  # 💡 Добавлен для avg_rating property
 
 
 class Divisions(models.Model):
@@ -101,27 +102,19 @@ class Suggestion(models.Model):
         verbose_name='Описание',
     )
     category = models.ForeignKey(
-        Category,
+        'Category',
         on_delete=models.PROTECT,
         null=True,
         related_name='suggestions',
         verbose_name='Категория',
     )
     status = models.ForeignKey(
-        Status,
+        'Status',
         on_delete=models.PROTECT,
         null=True,
         related_name='suggestions',
         verbose_name='Статус',
     )
-    # division = models.ForeignKey(
-    #     Divisions,
-    #     on_delete=models.PROTECT,
-    #     null=True,
-    #     related_name='suggestions',
-    #     verbose_name='Подразделение',
-    # )
-
     date_create = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Дата создания',
@@ -134,6 +127,29 @@ class Suggestion(models.Model):
 
     def __str__(self):
         return self.title
+
+    @property
+    def avg_rating(self):
+        avg = self.ratings.aggregate(avg=Avg('rating'))['avg']
+        return round(avg or 0, 1)
+
+    def can_change_status(self, new_status_name):
+        transitions = {
+            'draft': ['submitted'],  # черновик → отправлено
+            'submitted': ['under_review', 'archived', 'draft'],
+            # отправлено → на рассмотрении, архив или возврат в черновик
+            'under_review': ['approved', 'rejected'],  # на рассмотрении → подтверждено или отклонено
+            'approved': ['preparing'],  # подтверждено → готовится к реализации
+            'preparing': ['in_progress'],  # готовится → реализуется
+            'in_progress': ['completed'],  # реализуется → реализовано
+            'completed': [],  # завершено — конец
+            'rejected': ['archived', 'draft'],  # отклонено → архив или возврат в черновик
+            'archived': [],  # архив — конец
+        }
+
+        current = self.status.name
+        allowed = transitions.get(current, [])
+        return new_status_name in allowed
 
 
 class Comment(models.Model):

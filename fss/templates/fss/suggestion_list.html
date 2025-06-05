@@ -1,245 +1,247 @@
-{% extends 'fss/base.html' %}
-{% load static %}
-
-{% block content %}
-<div class="container-fluid">
-  <div class="row">
-    <!-- Sidebar -->
-    <nav class="col-md-3 col-lg-2 d-md-block vh-100 position-fixed ps-3 pt-4">
-      <h5 class="text-success mb-4 fw-semibold">Администратор</h5>
-      <ul class="nav flex-column gap-3">
-        <li class="nav-item">
-          <a href="/stats" class="nav-link d-flex align-items-center gap-2 text-secondary fw-medium fs-5">
-            <i class="bi bi-speedometer2"></i>
-            <span>Dashboard</span>
-          </a>
-        </li>
-        <li class="nav-item">
-         <a href="{% url 'user_management' %}" class="nav-link d-flex align-items-center gap-2 text-secondary fw-medium fs-5">
-            <i class="bi bi-people-fill"></i>
-            <span>Пользователи</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link d-flex align-items-center gap-2 text-secondary fw-medium fs-5">
-            <i class="bi bi-flag-fill"></i>
-            <span>Жалобы</span>
-          </a>
-        </li>
-        <li class="nav-item mt-auto">
-          <a href="{% url 'import_users' %}" class="nav-link d-flex align-items-center gap-2 text-secondary fw-medium fs-5">
-            <i class="bi bi-upload"></i>
-            <span>Импорт пользователей</span>
-          </a>
-        </li>
-      </ul>
-    </nav>
-
-    <!-- Main content -->
-    <main class="col-md-9 ms-sm-auto col-lg-10 offset-md-3 px-4 py-4">
-      <h2 class="text-success mb-4 fw-semibold">Панель администратора</h2>
-
-      <div class="mb-4">
-        <h4 class="mb-3">Список предложений</h4>
-
-        <div class="d-flex justify-content-end mb-3 gap-2">
-          <a href="{% url 'export_suggestions_csv' %}" class="btn btn-outline-success d-flex align-items-center gap-1">
-            <i class="bi bi-filetype-csv"></i> Экспорт CSV
-          </a>
-          <a href="{% url 'export_suggestions_excel' %}" class="btn btn-outline-primary d-flex align-items-center gap-1">
-            <i class="bi bi-file-earmark-excel"></i> Экспорт Excel
-          </a>
-        </div>
-
-        <div class="table-responsive">
-          <table class="table align-middle table-hover">
-            <thead class="table-success">
-              <tr>
-                <th>ID</th>
-                <th>Пользователь</th>
-                <th>Заголовок</th>
-                   <th>Подразделение</th>
-                <th>Статус</th>
-                <th>Действия</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for suggestion in suggestions %}
-              <tr>
-                <td>{{ suggestion.id }}</td>
-                <td>{{ suggestion.user.username }}</td>
-                <td>{{ suggestion.title }}</td>
-                <td>{{ suggestion.user.division.name}}</td>
-                <td class="status-cell" data-id="{{ suggestion.id }}">
-                  <span class="badge
-                    {% if suggestion.status.name == 'draft' %} bg-secondary
-                    {% elif suggestion.status.name == 'submitted' %} bg-primary
-                    {% elif suggestion.status.name == 'rejected' %} bg-danger
-                    {% elif suggestion.status.name == 'archived' %} bg-dark
-                    {% elif suggestion.status.name == 'approved' %} bg-success
-                    {% elif suggestion.status.name == 'preparing' %} bg-info
-                    {% elif suggestion.status.name == 'in_progress' %} bg-warning text-dark
-                    {% elif suggestion.status.name == 'completed' %} bg-success
-                    {% else %} bg-light text-dark border {% endif %}">
-                    {{ suggestion.status.get_name_display }}
-                  </span>
-                </td>
-                <td>
-                  <div class="btn-group" role="group">
-                    <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-outline-primary btn-sm" title="Подробнее">
-                      <i class="bi bi-eye"></i>
-                    </a>
-                    <button class="btn btn-outline-success btn-sm btn-approve" data-id="{{ suggestion.id }}" data-title="{{ suggestion.title }}" title="Принять">
-                      <i class="bi bi-check-circle"></i>
-                    </button>
-                    <button class="btn btn-outline-danger btn-sm btn-reject" data-id="{{ suggestion.id }}" data-title="{{ suggestion.title }}" title="Отклонить">
-                      <i class="bi bi-x-circle"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              {% empty %}
-              <tr>
-                <td colspan="5" class="text-center text-muted">Нет предложений для отображения.</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+    {% extends 'fss/base.html' %}
+    {% load static %}
+    
+    {% block content %}
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block vh-100 position-fixed ps-3 pt-4">
+          <h5 class="text-success mb-4 fw-semibold">Администратор</h5>
+          <ul class="nav flex-column gap-3">
+            <li class="nav-item">
+              <a href="/stats" class="nav-link d-flex align-items-center gap-2 text-secondary fw-medium fs-5">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+              </a>
+            </li>
+            <li class="nav-item">
+             <a href="{% url 'user_management' %}" class="nav-link d-flex align-items-center gap-2 text-secondary fw-medium fs-5">
+                <i class="bi bi-people-fill"></i>
+                <span>Пользователи</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link d-flex align-items-center gap-2 text-secondary fw-medium fs-5">
+                <i class="bi bi-flag-fill"></i>
+                <span>Жалобы</span>
+              </a>
+            </li>
+            <li class="nav-item mt-auto">
+              <a href="{% url 'import_users' %}" class="nav-link d-flex align-items-center gap-2 text-secondary fw-medium fs-5">
+                <i class="bi bi-upload"></i>
+                <span>Импорт пользователей</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+    
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 offset-md-3 px-4 py-4">
+          <h2 class="text-success mb-4 fw-semibold">Панель администратора</h2>
+    
+          <div class="mb-4">
+            <h4 class="mb-3">Список предложений</h4>
+    
+            <div class="d-flex justify-content-end mb-3 gap-2">
+              <a href="{% url 'export_suggestions_csv' %}" class="btn btn-outline-success d-flex align-items-center gap-1">
+                <i class="bi bi-filetype-csv"></i> Экспорт CSV
+              </a>
+              <a href="{% url 'export_suggestions_excel' %}" class="btn btn-outline-primary d-flex align-items-center gap-1">
+                <i class="bi bi-file-earmark-excel"></i> Экспорт Excel
+              </a>
+            </div>
+    
+            <div class="table-responsive">
+              <table class="table align-middle table-hover">
+                <thead class="table-success">
+                  <tr>
+                    <th>ID</th>
+                    <th>Пользователь</th>
+                    <th>Заголовок</th>
+                       <th>Подразделение</th>
+                    <th>Статус</th>
+                    <th>Действия</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for suggestion in suggestions %}
+                  <tr>
+                    <td>{{ suggestion.id }}</td>
+                    <td>{{ suggestion.user.username }}</td>
+                    <td>{{ suggestion.title }}</td>
+                    <td>{{ suggestion.user.division.name}}</td>
+                    <td class="status-cell" data-id="{{ suggestion.id }}">
+                      <span class="badge
+                        {% if suggestion.status.name == 'draft' %} bg-secondary
+                        {% elif suggestion.status.name == 'submitted' %} bg-primary
+                        {% elif suggestion.status.name == 'rejected' %} bg-danger
+                        {% elif suggestion.status.name == 'archived' %} bg-dark
+                        {% elif suggestion.status.name == 'approved' %} bg-success
+                        {% elif suggestion.status.name == 'preparing' %} bg-info
+                        {% elif suggestion.status.name == 'in_progress' %} bg-warning text-dark
+                        {% elif suggestion.status.name == 'completed' %} bg-success
+                        {% else %} bg-light text-dark border {% endif %}">
+                        {{ suggestion.status.get_name_display }}
+                      </span>
+                    </td>
+                    <td>
+                      <div class="btn-group" role="group">
+                        <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-outline-primary btn-sm" title="Подробнее">
+                          <i class="bi bi-eye"></i>
+                        </a>
+                        <button class="btn btn-outline-success btn-sm btn-approve" data-id="{{ suggestion.id }}" data-title="{{ suggestion.title }}" title="Принять">
+                          <i class="bi bi-check-circle"></i>
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm btn-reject" data-id="{{ suggestion.id }}" data-title="{{ suggestion.title }}" title="Отклонить">
+                          <i class="bi bi-x-circle"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="5" class="text-center text-muted">Нет предложений для отображения.</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
       </div>
-    </main>
-  </div>
-</div>
-
-<!-- Модальное окно отклонения -->
-<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form id="rejectForm">
-                {% csrf_token %}
-                <div class="modal-header">
-                    <h5 class="modal-title" id="rejectModalLabel">Отклонить предложение</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" name="suggestion_id" id="reject_suggestion_id">
-                    <div class="mb-3">
-                        <label for="reject_reason" class="form-label">Причина отклонения</label>
-                        <textarea class="form-control" name="reason" id="reject_reason" rows="3" required></textarea>
+    </div>
+    
+    <!-- Модальное окно отклонения -->
+    <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="rejectForm">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="rejectModalLabel">Отклонить предложение</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
                     </div>
-                    <div class="mb-3">
-                        <label for="reject_action" class="form-label">Действие</label>
-                        <select class="form-select" name="action" id="reject_action">
-                            <option value="archive">Архивировать</option>
-                            <option value="draft">Вернуть в черновик</option>
-                        </select>
+                    <div class="modal-body">
+                        <input type="hidden" name="suggestion_id" id="reject_suggestion_id">
+                        <div class="mb-3">
+                            <label for="reject_reason" class="form-label">Причина отклонения</label>
+                            <textarea class="form-control" name="reason" id="reject_reason" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reject_action" class="form-label">Действие</label>
+                            <select class="form-select" name="action" id="reject_action">
+                                <option value="archived">Архивировать</option>
+                                <option value="draft">Вернуть в черновик</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-danger w-100">Отклонить</button>
-                </div>
-            </form>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-danger w-100">Отклонить</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
-
-<!-- Модальное окно принятия -->
-<div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form id="approveForm">
-                {% csrf_token %}
-                <div class="modal-header">
-                    <h5 class="modal-title" id="approveModalLabel">Принять предложение</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" name="suggestion_id" id="approve_suggestion_id">
-                    <div class="mb-3">
-                        <label for="approve_status" class="form-label">Новый статус</label>
-                        <select class="form-select" name="status" id="approve_status" required>
+    
+    <!-- Модальное окно принятия -->
+    <div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="approveForm">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="approveModalLabel">Принять предложение</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="suggestion_id" id="approve_suggestion_id">
+                        <div class="mb-3">
+                            <label for="approve_status" class="form-label">Новый статус</label>
+                            <select class="form-select" name="status" required>
+                            <option value="under_review">На рассмотрении</option>
                             <option value="approved">Подтверждено</option>
                             <option value="preparing">Готовится к реализации</option>
                             <option value="in_progress">Реализуется</option>
                             <option value="completed">Реализовано</option>
                         </select>
+
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-success w-100">Принять</button>
-                </div>
-            </form>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success w-100">Принять</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
-
-<!-- JS логика -->
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    const rejectModal = new bootstrap.Modal(document.getElementById("rejectModal"));
-    const approveModal = new bootstrap.Modal(document.getElementById("approveModal"));
-
-    // Открытие модалок
-    document.querySelectorAll(".btn-reject").forEach(button => {
-        button.addEventListener("click", () => {
-            document.getElementById("reject_suggestion_id").value = button.dataset.id;
-            document.getElementById("rejectModalLabel").textContent = `Отклонить: ${button.dataset.title}`;
-            rejectModal.show();
+    
+    <!-- JS логика -->
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const rejectModal = new bootstrap.Modal(document.getElementById("rejectModal"));
+        const approveModal = new bootstrap.Modal(document.getElementById("approveModal"));
+    
+        // Открытие модалок
+        document.querySelectorAll(".btn-reject").forEach(button => {
+            button.addEventListener("click", () => {
+                document.getElementById("reject_suggestion_id").value = button.dataset.id;
+                document.getElementById("rejectModalLabel").textContent = `Отклонить: ${button.dataset.title}`;
+                rejectModal.show();
+            });
         });
-    });
-
-    document.querySelectorAll(".btn-approve").forEach(button => {
-        button.addEventListener("click", () => {
-            document.getElementById("approve_suggestion_id").value = button.dataset.id;
-            document.getElementById("approveModalLabel").textContent = `Принять: ${button.dataset.title}`;
-            approveModal.show();
+    
+        document.querySelectorAll(".btn-approve").forEach(button => {
+            button.addEventListener("click", () => {
+                document.getElementById("approve_suggestion_id").value = button.dataset.id;
+                document.getElementById("approveModalLabel").textContent = `Принять: ${button.dataset.title}`;
+                approveModal.show();
+            });
         });
-    });
-
-    // Обработка формы отклонения
-    document.getElementById("rejectForm").addEventListener("submit", e => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        fetch("{% url 'reject_suggestion' %}", {
-            method: "POST",
-            body: formData,
-            headers: { "X-CSRFToken": "{{ csrf_token }}" }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                updateStatus(data.id, data.new_status, data.status_class);
-                rejectModal.hide();
-            } else alert("Ошибка при отклонении");
+    
+        // Обработка формы отклонения
+        document.getElementById("rejectForm").addEventListener("submit", e => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            fetch("{% url 'reject_suggestion' %}", {
+                method: "POST",
+                body: formData,
+                headers: { "X-CSRFToken": "{{ csrf_token }}" }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    updateStatus(data.id, data.new_status, data.status_class);
+                    rejectModal.hide();
+                } else alert("Ошибка при отклонении");
+            });
         });
-    });
-
-    // Обработка формы принятия
-    document.getElementById("approveForm").addEventListener("submit", e => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        fetch("{% url 'approve_suggestion' %}", {
-            method: "POST",
-            body: formData,
-            headers: { "X-CSRFToken": "{{ csrf_token }}" }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                updateStatus(data.id, data.new_status, data.status_class);
-                approveModal.hide();
-            } else alert("Ошибка при принятии");
+    
+        // Обработка формы принятия
+        document.getElementById("approveForm").addEventListener("submit", e => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            fetch("{% url 'approve_suggestion' %}", {
+                method: "POST",
+                body: formData,
+                headers: { "X-CSRFToken": "{{ csrf_token }}" }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    updateStatus(data.id, data.new_status, data.status_class);
+                    approveModal.hide();
+                } else alert("Ошибка при принятии");
+            });
         });
-    });
-
-    function updateStatus(id, newStatus, badgeClass) {
-        const cell = document.querySelector(`.status-cell[data-id="${id}"]`);
-        if (cell) {
-            cell.innerHTML = `<span class="badge ${badgeClass}">${newStatus}</span>`;
+    
+        function updateStatus(id, newStatus, badgeClass) {
+            const cell = document.querySelector(`.status-cell[data-id="${id}"]`);
+            if (cell) {
+                cell.innerHTML = `<span class="badge ${badgeClass}">${newStatus}</span>`;
+            }
         }
-    }
-});
-</script>
-{% endblock %}
-{{ block.super }}
-
+    });
+    </script>
+    {% endblock %}
+    {{ block.super }}
+    

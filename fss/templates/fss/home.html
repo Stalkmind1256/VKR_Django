@@ -1,8 +1,11 @@
 {% extends 'fss/base.html' %}
 {% load static %}
 
-{% block content %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+{% endblock %}
 
+{% block content %}
 {% if messages %}
     <ul class="message">
         {% for message in messages %}
@@ -11,22 +14,32 @@
     </ul>
 {% endif %}
 
-<!-- Блок лучших предложений -->
 <div class="mt-5">
     <h3 class="mb-4 text-center">Лучшие предложения</h3>
     {% if best_suggestions %}
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 align-items-stretch">
             {% for suggestion in best_suggestions %}
                 <div class="col">
-                    <div class="card h-100 shadow-sm border-0">
-                        <div class="card-body">
+                    <div class="card h-100 shadow-sm border-0 d-flex flex-column">
+                        <div class="card-body flex-grow-1">
                             <h5 class="card-title">{{ suggestion.title }}</h5>
                             <p class="card-text">{{ suggestion.description|truncatewords:25 }}</p>
                         </div>
-                        <div class="card-footer d-flex justify-content-between align-items-center bg-white border-0">
-                            <small class="text-muted">{{ suggestion.status.get_name_display }}</small>
-                            <small class="text-muted">{{ suggestion.date_create|date:"d.m.Y" }}</small>
-                            <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-outline-success btn-sm">Подробнее</a>
+                        <div class="card-footer d-flex flex-column bg-white border-0">
+                            <div class="d-flex justify-content-between align-items-center w-100 mb-2">
+                                <small class="text-muted">{{ suggestion.status.get_name_display }}</small>
+                                <small class="text-muted">{{ suggestion.date_create|date:"d.m.Y" }}</small>
+                            </div>
+
+                            <!-- Рейтинг -->
+                            <div class="mb-2 rating" data-suggestion-id="{{ suggestion.id }}" data-current-rating="{{ suggestion.avg_rating|default:0|floatformat:1 }}">
+                                {% for i in "12345" %}
+                                    <i class="fa fa-star text-secondary" style="cursor: pointer;"></i>
+                                {% endfor %}
+                                <small class="text-muted">({{ suggestion.avg_rating|default:"0.0"|floatformat:1 }}/5)</small>
+                            </div>
+
+                            <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-outline-success btn-sm mt-auto">Подробнее</a>
                         </div>
                     </div>
                 </div>
@@ -36,5 +49,57 @@
         <p class="text-muted text-center">Нет подходящих предложений для отображения.</p>
     {% endif %}
 </div>
+{% endblock %}
 
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.rating').forEach(ratingBlock => {
+        const stars = ratingBlock.querySelectorAll('i');
+        const ratingText = ratingBlock.querySelector('small');
+        let currentRating = parseFloat(ratingBlock.dataset.currentRating) || 0;
+
+        const updateStars = (highlighted) => {
+            stars.forEach((star, i) => {
+                star.classList.toggle('text-warning', i < highlighted);
+                star.classList.toggle('text-secondary', i >= highlighted);
+            });
+        };
+
+        updateStars(Math.round(currentRating));
+
+        stars.forEach((star, index) => {
+            star.addEventListener('mouseenter', () => updateStars(index + 1));
+            star.addEventListener('mouseleave', () => updateStars(Math.round(currentRating)));
+
+            star.addEventListener('click', () => {
+                const suggestionId = ratingBlock.dataset.suggestionId;
+                const rating = index + 1;
+
+                fetch("{% url 'rate_suggestion' %}", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    },
+                    body: JSON.stringify({ suggestion_id: suggestionId, rating: rating })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentRating = data.new_avg_rating;
+                        ratingBlock.dataset.currentRating = currentRating.toFixed(1);
+                        if (ratingText) {
+                            ratingText.textContent = `(${currentRating.toFixed(1)}/5)`;
+                        }
+                        updateStars(Math.round(currentRating));
+                    } else {
+                        alert(data.error || "Ошибка при отправке оценки");
+                    }
+                });
+            });
+        });
+    });
+});
+</script>
 {% endblock %}
