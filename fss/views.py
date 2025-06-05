@@ -1,4 +1,4 @@
-import csv
+import json
 
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import render, get_object_or_404, redirect
@@ -8,17 +8,19 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.core.exceptions import PermissionDenied
-from django.views.decorators.http import require_POST
 from openpyxl.workbook import Workbook
-
-from .models import Category, Divisions, Suggestion, Status, Notification, Comment, CustomUser
+from .forms import CustomUserForm
+from django.db.models import Avg
+from django.db.models import Q
+from .models import Category, Divisions, Suggestion, Status, Notification, Comment, CustomUser, SuggestionRating
 from .forms import SuggestionForm, CommentForm
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Count
 from .models import Suggestion
 from django.utils.timezone import is_aware
 import openpyxl
+from django.views.decorators.http import require_POST
+from .models import CustomUser
 
 from .models import CustomUser
 
@@ -27,14 +29,17 @@ def home(request):
     if request.user.is_authenticated:
         unread_count = request.user.notifications.filter(is_read=False).count()
 
-    # Получить предложения со статусами "approved" или "completed"
-    best_suggestions = Suggestion.objects.filter(status__name__in=['approved', 'completed']).order_by('-date_create')[:5]
+    # Получить предложения со статусами "approved" или "completed" с аннотацией средней оценки
+    best_suggestions = Suggestion.objects.filter(
+        status__name__in=['approved', 'completed']
+    ).annotate(
+        avg_rating=Avg('ratings__rating')
+    ).order_by('-date_create')[:5]
 
     return render(request, 'fss/home.html', {
         'unread_count': unread_count,
         'best_suggestions': best_suggestions
     })
-
 
 def register(request):
     if request.method == 'POST':
@@ -175,12 +180,15 @@ def moderator_panel(request):
     page = request.GET.get('page')
     suggestions_page = paginator.get_page(page)
 
+    statuses = Status.objects.all()
+
     return render(request, 'fss/moderator_panel.html', {
         'suggestions': suggestions_page,
         'status_filter': status_filter,
         'user_filter': user_filter,
         'start_date': start_date,
         'end_date': end_date,
+        'statuses': statuses,
     })
 
 
@@ -200,8 +208,14 @@ def reject_suggestion(request):
         reason = request.POST.get('reason')
         action = request.POST.get('action')
 
+        print("DEBUG:", suggestion_id, reason, action)  # 👈
+
         try:
             suggestion = Suggestion.objects.get(id=suggestion_id)
+
+            if suggestion.status.name == 'archived':
+                return JsonResponse({'success': False, 'error': 'Нельзя изменить статус архивированного предложения'})
+
             status_obj = Status.objects.get(name=action)
             suggestion.status = status_obj
             suggestion.save()
@@ -218,8 +232,9 @@ def reject_suggestion(request):
                 'new_status': status_obj.get_name_display(),
                 'status_class': get_status_class(status_obj.name),
             })
-        except (Suggestion.DoesNotExist, Status.DoesNotExist):
-            return JsonResponse({'success': False, 'error': 'Invalid data'})
+        except (Suggestion.DoesNotExist, Status.DoesNotExist) as e:
+            print("ERROR:", e)  # 👈
+            return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
 
@@ -232,6 +247,10 @@ def approve_suggestion(request):
 
         # Проверяем наличие предложения
         suggestion = get_object_or_404(Suggestion, id=suggestion_id)
+
+        if suggestion.status.name == 'archived':
+            return JsonResponse({'success': False, 'error': 'Нельзя изменить статус архивированного предложения'},
+                                status=400)
 
         # Проверяем наличие статуса
         try:
@@ -307,7 +326,7 @@ def suggestions_stats_api(request):
     return JsonResponse(data)
 
 def stats(request):
-    # Здесь можно передать данные в шаблон, если нужно
+
     return render(request, 'fss/stats.html')
 
 @login_required
@@ -383,20 +402,24 @@ def import_users(request):
     return render(request, 'fss/import_users.html')
 
 def user_management(request):
-    query = request.GET.get('q')
+    query = request.GET.get("q", "")
+    users = CustomUser.objects.all()
+
     if query:
-        users = CustomUser.objects.filter(
+        users = users.filter(
             Q(first_name__icontains=query) |
             Q(last_name__icontains=query) |
-            Q(middle_name__icontains=query) |
-            Q(department__icontains=query)
+            Q(patronymic__icontains=query) |
+            Q(division__name__icontains=query)
         )
-    else:
-        users = CustomUser.objects.all()
 
-    return render(request, 'fss/users_admin.html', {
-        'users': users,
-        'query': query,
+    paginator = Paginator(users, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "fss/users_admin.html", {
+        "users": page_obj,
+        "query": query,
     })
 
 
@@ -410,3 +433,42 @@ def delete_user(request, user_id):
         except CustomUser.DoesNotExist:
             return JsonResponse({"success": False, "error": "User not found"})
     return JsonResponse({"success": False, "error": "Invalid request"})
+
+
+def edit_user(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+    if request.method == "POST":
+        form = CustomUserForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect('user_management')  # вернуться к списку
+    else:
+        form = CustomUserForm(instance=user)
+    return render(request, 'fss/edit_user.html', {'form': form, 'user': user})
+
+@login_required
+@require_POST
+def mark_notifications_read(request):
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    return JsonResponse({"success": True})
+
+@require_POST
+@login_required
+def rate_suggestion(request):
+    try:
+        data = json.loads(request.body)
+        suggestion_id = data.get('suggestion_id')
+        rating = int(data.get('rating'))
+
+        suggestion = Suggestion.objects.get(pk=suggestion_id)
+
+        # Обновить или создать
+        SuggestionRating.objects.update_or_create(
+            user=request.user,
+            suggestion=suggestion,
+            defaults={'rating': rating}
+        )
+
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

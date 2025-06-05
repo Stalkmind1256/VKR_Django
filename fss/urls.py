@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
 from django.shortcuts import redirect
-from .views import suggestion_detail, add_comment, import_users
+from .views import suggestion_detail, add_comment, import_users, edit_user, rate_suggestion
 from .views import suggestions_stats_api
 from .views import stats
 from .views import user_management ,delete_user
@@ -41,6 +41,10 @@ urlpatterns = [
 
     path('users/', user_management, name='user_management'),
     path('users/<int:user_id>/delete/', delete_user, name='delete_user'),
+    path('users/<int:user_id>/edit/', edit_user, name='edit_user'),
+    path('notifications/mark_read/', views.mark_notifications_read, name='mark_notifications_read'),
+    path('rate-suggestion/', rate_suggestion, name='rate_suggestion'),
+
 
 
 ]

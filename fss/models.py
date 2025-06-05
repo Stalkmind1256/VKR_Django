@@ -85,6 +85,7 @@ class Category(models.Model):
         return self.get_name_display()
 
 
+
 class Suggestion(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -101,27 +102,19 @@ class Suggestion(models.Model):
         verbose_name='Описание',
     )
     category = models.ForeignKey(
-        Category,
+        'Category',
         on_delete=models.PROTECT,
         null=True,
         related_name='suggestions',
         verbose_name='Категория',
     )
     status = models.ForeignKey(
-        Status,
+        'Status',
         on_delete=models.PROTECT,
         null=True,
         related_name='suggestions',
         verbose_name='Статус',
     )
-    # division = models.ForeignKey(
-    #     Divisions,
-    #     on_delete=models.PROTECT,
-    #     null=True,
-    #     related_name='suggestions',
-    #     verbose_name='Подразделение',
-    # )
-
     date_create = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Дата создания',
@@ -134,6 +127,11 @@ class Suggestion(models.Model):
 
     def __str__(self):
         return self.title
+
+    def avg_rating(self):
+        avg = self.ratings.aggregate(avg=Avg('rating'))['avg']
+        return round(avg or 0, 1)
+
 
 
 class Comment(models.Model):

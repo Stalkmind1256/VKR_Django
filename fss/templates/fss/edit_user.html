@@ -1,0 +1,12 @@
+{% extends 'fss/base.html' %}
+{% block content %}
+<div class="container py-4">
+   <h3 class="mb-4">Редактирование пользователя: {{ user.last_name }} {{ user.first_name }} {{ user.patronymic }}</h3>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Сохранить</button>
+    <a href="{% url 'user_management' %}" class="btn btn-secondary">Отмена</a>
+  </form>
+</div>
+{% endblock %}
