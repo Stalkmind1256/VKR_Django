@@ -1,107 +1,183 @@
-/* Сброс стилей по умолчанию */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/*Навигация*/
+.navbar.bg-dark {
+    background-color: #28a745 !important;
+    border-bottom: 2px solid #218838;
+}
+.navbar .navbar-brand,
+.navbar .nav-link {
+    color: #ffffff !important;
+}
+.navbar .nav-link:hover {
+    color: #d4edda !important;
+        background-color: rgba(255, 255, 255, 0.1);
+}
+.navbar-nav .nav-link.active {
+    color: white !important; /* Цвет активной ссылки */
+}
+.navbar-nav .navbar-text {
+    color: white; /* Цвет текста пользователя */
+}
+.navbar-nav .nav-link {
+    transition: background-color 0.3s ease, color 0.3s ease; /* Плавный переход при наведении */
+}
+.navbar-nav {
+  display: flex;
+  padding-left: 0;
+  margin-bottom: 0;
 }
 
-/* Основной контейнер */
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f8f9fa;
-    margin: 0;
+.nav-item {
+  margin-right: 20px;
+}
+.navbar-text{
+    font-size: 25px;
+    color: white;
 }
 
-/* Шапка сайта */
-.navbar {
-    background-color: #f8f9fa;
-    padding: 10px 0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+.nav-link.active {
+  font-weight: bold;
+}
+.navbar-brand{
+padding-top: 15px;
 }
 
-/* Контейнер для навигационной панели */
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
+
+
+/*Login*/
+/* Выровнять контейнер по центру экрана */
+.container_form {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Карточка формы */
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Лэйблы и поля на одной линии */
+.form-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    flex: 0 0 30%; /* Задает фиксированную ширину для лэйблов */
+    text-align: right; /* Выравнивает текст справа */
+    margin-right: 15px;
+    font-weight: bold;
+    color: #495057;
+}
+
+.form-group input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* Чекбокс "Запомнить меня" */
+.form-check {
+    display: flex;
     align-items: center;
 }
 
-/* Логотип */
-.navbar-brand {
-    font-size: 24px;
-    font-weight: bold;
-    color: #007bff;
-    text-decoration: none;
+.form-check input {
+    margin-right: 10px;
 }
 
-/* Навигационные ссылки */
-.navbar-nav ul {
-    list-style-type: none;
-    display: flex;
+.form-check label {
+    font-size: 14px;
+    color: #495057;
 }
 
-.navbar-nav li {
-    margin-left: 20px;
-}
-
-.navbar-nav a {
-    text-decoration: none;
-    color: #333;
-    font-size: 16px;
-    padding: 10px;
-    transition: color 0.3s;
-}
-
-.navbar-nav a:hover {
-    color: #007bff;
-}
-
-.navbar-nav .active {
-    font-weight: bold;
-    color: #007bff;
-}
-
-/* Кнопка для мобильного меню */
-.navbar-toggler {
-    display: none;
-    background-color: #007bff;
-    color: white;
+/* Кнопка входа */
+button[type="submit"] {
+    background-color: #28a745;
     border: none;
-    padding: 10px;
-    font-size: 24px;
+    padding: 10px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffffff;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
 }
 
-/* Мобильный режим */
-@media (max-width: 768px) {
-    .navbar-nav {
-        display: none;
-        width: 100%;
-        text-align: center;
-    }
+button[type="submit"]:hover {
+    background-color: #218838;
+}
 
-    .navbar-nav.active {
-        display: block;
-    }
+/* Ссылка "Забыли пароль?" */
+a.text-decoration-none {
+    font-size: 14px;
+    color: #28a745;
+    transition: color 0.3s ease;
+}
 
-    .navbar-nav ul {
-        display: block;
-    }
+a.text-decoration-none:hover {
+    color: #218838;
+    text-decoration: underline;
+}
 
-    .navbar-nav li {
-        margin-left: 0;
-        margin-bottom: 10px;
-    }
 
-    .navbar-toggler {
-        display: block;
+
+
+/* Стили для квадратной формы */
+.square-form {
+    border: 2px solid #ccc;
+    border-radius: 10px;  /* Скругление углов */
+    padding: 20px;  /* Отступы внутри формы */
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);  /* Легкая тень */
+}
+
+.square-form .form-control, .square-form .form-select, .square-form textarea {
+    border-radius: 8px;  /* Скругление полей ввода */
+    margin-bottom: 15px;  /* Отступы между полями */
+}
+
+.square-form .btn {
+    width: 100%;  /* Кнопка на всю ширину */
+    border-radius: 8px;  /* Скругление кнопки */
+    padding: 12px;  /* Увеличиваем размер кнопки */
+}
+
+.square-form .invalid-feedback {
+    font-size: 0.9rem;
+    color: #dc3545;  /* Цвет ошибки */
+}
+
+/* Адаптивность */
+@media (max-width: 767px) {
+    .square-form {
+        padding: 15px;  /* Меньше отступов на мобильных устройствах */
     }
 }
 
-/* Контент страницы */
-.content {
-    padding: 20px;
-    text-align: center;
+
+    select.form-select {
+        font-size: 1.2rem; /* Увеличиваем шрифт для выпадающего списка */
+    }
+    select.form-select option {
+        font-size: 1.2rem; /* Увеличиваем шрифт для опций */
+    }
+
+/*Пагинация*/
+.pagination-green .page-link {
+    color: #28a745; /* Зеленый текст */
+}
+
+.pagination-green .page-link:hover {
+    background-color: #28a745; /* Зеленый фон при наведении */
+    color: white; /* Белый текст */
+}
+
+.pagination-green .active .page-link {
+    background-color: #28a745; /* Зеленый фон для активной страницы */
+    color: white; /* Белый текст */
 }

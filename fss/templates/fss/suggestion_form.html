@@ -1,32 +1,40 @@
 {% extends 'fss/base.html' %}
 
 {% block content %}
-    <h1 class="mt-4 mb-4">Подача предложения</h1>
-
-    <form method="POST" class="needs-validation" novalidate>
+<div class="container mt-5">
+    <h2 class="mb-4">
+        {% if form.instance.pk %}Редактирование предложения{% else %}Создание черновика{% endif %}
+    </h2>
+    <form method="post">
         {% csrf_token %}
         <div class="mb-3">
-            <label for="title" class="form-label">Заголовок предложения</label>
-            <input type="text" class="form-control" id="title" name="title" required>
+            <label  class="form-label">Заголовок предложения</label>
+            {{ form.title }}
             <div class="invalid-feedback">Пожалуйста, введите заголовок.</div>
         </div>
 
         <div class="mb-3">
-            <label for="description" class="form-label">Описание предложения</label>
-            <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
+            <label  class="form-label">Описание предложения</label>
+            {{ form.description }}
             <div class="invalid-feedback">Пожалуйста, введите описание.</div>
         </div>
 
         <div class="mb-3">
-            <label for="category" class="form-label">Категория</label>
-            <select class="form-select" id="category" name="category" required>
-                <option value="technology">Технологии</option>
-                <option value="education">Образование</option>
-            </select>
+            <label  class="form-label">Категория</label>
+            {{ form.category }}
             <div class="invalid-feedback">Пожалуйста, выберите категорию.</div>
         </div>
 
-        <button type="submit" class="btn btn-primary">Отправить предложение</button>
-    </form>
+<!--        <div class="mb-3">-->
+<!--            <label  class="form-label">Подразделение</label>-->
+<!--            {{ form.division }}-->
+<!--            <div class="invalid-feedback">Пожалуйста, выберите подразделение.</div>-->
+<!--        </div>-->
 
+        <button type="submit" class="btn btn-primary">
+            {% if form.instance.pk %}Сохранить изменения{% else %}Создать черновик{% endif %}
+        </button>
+        <a href="{% url 'my_suggestions' %}" class="btn btn-secondary">Отмена</a>
+    </form>
+</div>
 {% endblock %}

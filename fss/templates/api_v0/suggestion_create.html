@@ -1,110 +1,110 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Создание предложения</title>
-    <script src="{% static 'rest_framework/js/jquery-3.7.1.min.js' %}"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        form {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
-            margin: auto;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-        }
-        input, textarea, select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .message {
-            text-align: center;
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
+<!--{% load static %}-->
+<!--<!DOCTYPE html>-->
+<!--<html lang="ru">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>Создание предложения</title>-->
+<!--    <script src="{% static 'rest_framework/js/jquery-3.7.1.min.js' %}"></script>-->
+<!--    <style>-->
+<!--        body {-->
+<!--            font-family: Arial, sans-serif;-->
+<!--            padding: 20px;-->
+<!--            background-color: #f4f4f4;-->
+<!--        }-->
+<!--        form {-->
+<!--            background-color: #fff;-->
+<!--            padding: 20px;-->
+<!--            border-radius: 5px;-->
+<!--            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);-->
+<!--            width: 300px;-->
+<!--            margin: auto;-->
+<!--        }-->
+<!--        label {-->
+<!--            display: block;-->
+<!--            margin-bottom: 8px;-->
+<!--        }-->
+<!--        input, textarea, select {-->
+<!--            width: 100%;-->
+<!--            padding: 10px;-->
+<!--            margin-bottom: 10px;-->
+<!--            border: 1px solid #ccc;-->
+<!--            border-radius: 4px;-->
+<!--        }-->
+<!--        button {-->
+<!--            width: 100%;-->
+<!--            padding: 10px;-->
+<!--            background-color: #4CAF50;-->
+<!--            color: white;-->
+<!--            border: none;-->
+<!--            border-radius: 4px;-->
+<!--            cursor: pointer;-->
+<!--        }-->
+<!--        button:hover {-->
+<!--            background-color: #45a049;-->
+<!--        }-->
+<!--        .message {-->
+<!--            text-align: center;-->
+<!--            margin-top: 20px;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
 
-    <h1>Создание предложения</h1>
-    <form id="suggestionForm">
-        <label for="title">Название:</label>
-        <input type="text" id="title" name="title" required>
+<!--    <h1>Создание предложения</h1>-->
+<!--    <form id="suggestionForm">-->
+<!--        <label for="title">Название:</label>-->
+<!--        <input type="text" id="title" name="title" required>-->
 
-        <label for="description">Описание:</label>
-        <textarea id="description" name="description" rows="4" required></textarea>
+<!--        <label for="description">Описание:</label>-->
+<!--        <textarea id="description" name="description" rows="4" required></textarea>-->
 
-        <label for="category">Категория:</label>
-        <select id="category" name="category" required>
-            {% for value, name in categories %}
-                <option value="{{ value }}">{{ name }}</option>
-            {% endfor %}
-        </select>
+<!--        <label for="category">Категория:</label>-->
+<!--        <select class="form-select" id="category" name="category" required>-->
+<!--    {% for category in categories %}-->
+<!--        <option value="{{ category.id }}">{{ category.get_name_display }}</option>-->
+<!--    {% endfor %}-->
+<!--</select>-->
 
-        <button type="submit">Отправить предложение</button>
-    </form>
+<!--        <button type="submit">Отправить предложение</button>-->
+<!--    </form>-->
 
-    <div class="message" id="responseMessage"></div>
+<!--    <div class="message" id="responseMessage"></div>-->
 
-    <script>
-        $(document).ready(function() {
-            $('#suggestionForm').submit(function(event) {
-                event.preventDefault();  // Предотвратить стандартную отправку формы
+<!--    <script>-->
+<!--        $(document).ready(function() {-->
+<!--            $('#suggestionForm').submit(function(event) {-->
+<!--                event.preventDefault();  // Предотвратить стандартную отправку формы-->
 
-                const title = $('#title').val();
-                const description = $('#description').val();
-                const category = $('#category').val();  // Получаем категорию из формы
+<!--                const title = $('#title').val();-->
+<!--                const description = $('#description').val();-->
+<!--                const category = $('#category').val();  // Получаем категорию из формы-->
 
-                // Отправляем запрос на создание предложения
-                $.ajax({
-                    url: 'http://127.0.0.1:8000/api/v0/suggestion/',  // Ваш API-эндпоинт
-                    type: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}',
-                    },
-                    data: JSON.stringify({
-                        title: title,
-                        description: description,
-                        category: category,  // Передаем выбранную категорию
-                    }),
-                    success: function(response) {
-                        $('#responseMessage').html('<p style="color: green;">Предложение успешно создано!</p>');
-                        $('#suggestionForm')[0].reset();  // Очистить форму
-                    },
-                    error: function(xhr, status, error) {
-                        const errorMessage = xhr.responseJSON && xhr.responseJSON.detail ? xhr.responseJSON.detail : 'Ошибка при создании предложения';
-                        $('#responseMessage').html('<p style="color: red;">' + errorMessage + '</p>');
-                    }
-                });
-            });
-        });
-    </script>
+<!--                // Отправляем запрос на создание предложения-->
+<!--                $.ajax({-->
+<!--                    url: 'http://127.0.0.1:8000/api/v0/suggestion/',  // Ваш API-эндпоинт-->
+<!--                    type: 'POST',-->
+<!--                    headers: {-->
+<!--                        'Content-Type': 'application/json',-->
+<!--                        'X-CSRFToken': '{{ csrf_token }}',-->
+<!--                    },-->
+<!--                    data: JSON.stringify({-->
+<!--                        title: title,-->
+<!--                        description: description,-->
+<!--                        category: category,  // Передаем выбранную категорию-->
+<!--                    }),-->
+<!--                    success: function(response) {-->
+<!--                        $('#responseMessage').html('<p style="color: green;">Предложение успешно создано!</p>');-->
+<!--                        $('#suggestionForm')[0].reset();  // Очистить форму-->
+<!--                    },-->
+<!--                    error: function(xhr, status, error) {-->
+<!--                        const errorMessage = xhr.responseJSON && xhr.responseJSON.detail ? xhr.responseJSON.detail : 'Ошибка при создании предложения';-->
+<!--                        $('#responseMessage').html('<p style="color: red;">' + errorMessage + '</p>');-->
+<!--                    }-->
+<!--                });-->
+<!--            });-->
+<!--        });-->
+<!--    </script>-->
 
-</body>
-</html>
+<!--</body>-->
+<!--</html>-->
