@@ -33,7 +33,7 @@ def home(request):
     best_suggestions = Suggestion.objects.filter(
         status__name__in=['approved', 'completed']
     ).annotate(
-        avg_rating=Avg('ratings__rating')
+        avg_rating_value=Avg('ratings__rating')  # 👉 новое имя
     ).order_by('-date_create')[:5]
 
     return render(request, 'fss/home.html', {
@@ -153,8 +153,14 @@ def edit_suggestion(request, pk):
 def submit_suggestion(request, pk):
     suggestion = get_object_or_404(Suggestion, pk=pk, user=request.user)
     if suggestion.status.name == 'draft':
-        suggestion.status = Status.objects.get(name='submitted')
-        suggestion.save()
+        if suggestion.can_change_status('submitted'):
+            suggestion.status = Status.objects.get(name='submitted')
+            suggestion.save()
+            messages.success(request, "Статус успешно изменён на 'Отправлено'.")
+        else:
+            messages.error(request, "Переход из статуса 'Черновик' в 'Отправлено' не разрешён.")
+    else:
+        messages.error(request, "Статус предложения не 'Черновик', изменение невозможно.")
     return redirect('my_suggestions')
 
 
@@ -206,15 +212,16 @@ def reject_suggestion(request):
     if request.method == 'POST':
         suggestion_id = request.POST.get('suggestion_id')
         reason = request.POST.get('reason')
-        action = request.POST.get('action')
-
-        print("DEBUG:", suggestion_id, reason, action)  # 👈
+        action = request.POST.get('action')  # новый статус
 
         try:
             suggestion = Suggestion.objects.get(id=suggestion_id)
 
             if suggestion.status.name == 'archived':
                 return JsonResponse({'success': False, 'error': 'Нельзя изменить статус архивированного предложения'})
+
+            if not suggestion.can_change_status(action):
+                return JsonResponse({'success': False, 'error': f"Переход из '{suggestion.status.name}' в '{action}' запрещён"})
 
             status_obj = Status.objects.get(name=action)
             suggestion.status = status_obj
@@ -233,7 +240,6 @@ def reject_suggestion(request):
                 'status_class': get_status_class(status_obj.name),
             })
         except (Suggestion.DoesNotExist, Status.DoesNotExist) as e:
-            print("ERROR:", e)  # 👈
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
@@ -245,24 +251,21 @@ def approve_suggestion(request):
         status_name = request.POST.get("status")
         comment = request.POST.get("comment", "")
 
-        # Проверяем наличие предложения
         suggestion = get_object_or_404(Suggestion, id=suggestion_id)
 
-        if suggestion.status.name == 'archived':
-            return JsonResponse({'success': False, 'error': 'Нельзя изменить статус архивированного предложения'},
-                                status=400)
+        # Проверяем, можно ли перейти в нужный статус
+        if not suggestion.can_change_status(status_name):
+            return JsonResponse({
+                "success": False,
+                "error": f"Переход из статуса '{suggestion.status.name}' в '{status_name}' не разрешён."
+            }, status=400)
 
-        # Проверяем наличие статуса
-        try:
-            status = Status.objects.get(name=status_name)
-        except Status.DoesNotExist:
-            return JsonResponse({"success": False, "error": "Статус не найден"}, status=400)
-
-        # Обновляем статус предложения
+        # Обновляем статус
+        status = Status.objects.get(name=status_name)
         suggestion.status = status
         suggestion.save()
 
-        # Добавляем комментарий, если он есть
+        # Добавляем комментарий, если есть
         if comment:
             Comment.objects.create(
                 suggestion=suggestion,
@@ -270,13 +273,12 @@ def approve_suggestion(request):
                 text=comment
             )
 
-        # Создаем уведомление для автора предложения
+        # Уведомление пользователю
         Notification.objects.create(
             user=suggestion.user,
             message=f"Статус вашего предложения «{suggestion.title}» изменён на «{status.get_name_display()}»."
         )
 
-        # Возвращаем успешный ответ с данными
         return JsonResponse({
             "success": True,
             "id": suggestion.id,
@@ -287,13 +289,19 @@ def approve_suggestion(request):
     return JsonResponse({"success": False, "error": "Метод не разрешен"}, status=405)
 
 
+
 @login_required
 def notifications_view(request):
-    # Если использовал related_name="notifications" в модели Notification
-    notifications = request.user.notifications.order_by('-created_at')
+    notifications_list = request.user.notifications.order_by('-created_at')
+    paginator = Paginator(notifications_list, 10)  # по 15 уведомлений на страницу
 
-    # Если использовал notification_set (без указания related_name)
-    # notifications = request.user.notification_set.order_by('-created_at')
+    page_number = request.GET.get('page')
+    try:
+        notifications = paginator.page(page_number)
+    except PageNotAnInteger:
+        notifications = paginator.page(1)
+    except EmptyPage:
+        notifications = paginator.page(paginator.num_pages)
 
     context = {
         'notifications': notifications
@@ -469,6 +477,11 @@ def rate_suggestion(request):
             defaults={'rating': rating}
         )
 
-        return JsonResponse({'success': True})
+        return JsonResponse({
+            'success': True,
+            'new_avg_rating': SuggestionRating.objects.filter(suggestion=suggestion).aggregate(avg=Avg('rating'))['avg'] or 0.0,
+        })
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+
