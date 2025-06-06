@@ -484,4 +484,19 @@ def rate_suggestion(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
+def suggestion_list(request):
+    status_filter = request.GET.get('status', '')  # получаем фильтр из GET
 
+    suggestions = Suggestion.objects.all().order_by('-id')
+
+    if status_filter:
+        suggestions = suggestions.filter(status__name=status_filter)  # фильтрация по статусу
+
+    paginator = Paginator(suggestions, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'fss/suggestion_list.html', {
+        'page_obj': page_obj,
+        'status_filter': status_filter,  # чтобы в шаблоне знать текущий фильтр
+    })
