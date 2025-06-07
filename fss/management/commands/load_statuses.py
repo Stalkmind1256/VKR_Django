@@ -5,6 +5,7 @@ from fss.models import Status
 STATUSES = [
     "draft",
     "submitted",
+    "under_review",
     "approved",
     "rejected",
     "archived",
