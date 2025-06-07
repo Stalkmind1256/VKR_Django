@@ -45,4 +45,5 @@ urlpatterns = [
     path('notifications/mark_read/', views.mark_notifications_read, name='mark_notifications_read'),
     path('rate-suggestion/', rate_suggestion, name='rate_suggestion'),
 
+   # path('notifications/clear/', views.clear_notifications, name='clear_notifications'),
 ]
