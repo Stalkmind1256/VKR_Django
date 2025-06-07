@@ -11,6 +11,7 @@ class Divisions(models.Model):
         ('deanery', 'Деканат'),
         ('rectorate', 'Ректорат'),
         ('uvc', 'Учебно-вычислительный центр (УВЦ)'),
+        ('administration', 'Администрация'),
     ]
 
     name = models.CharField(
