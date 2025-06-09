@@ -37,10 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'fss',
     'rest_framework',
     'api_v0',
     'django_bootstrap5',
+    'fss.apps.FssConfig',
 ]
 
 MIDDLEWARE = [

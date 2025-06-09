@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from django.db.models import Avg  # 💡 Добавлен для avg_rating property
+from django.contrib.auth import get_user_model
 
 
 class Divisions(models.Model):
@@ -10,6 +11,7 @@ class Divisions(models.Model):
         ('deanery', 'Деканат'),
         ('rectorate', 'Ректорат'),
         ('uvc', 'Учебно-вычислительный центр (УВЦ)'),
+        ('administration', 'Администрация'),
     ]
 
     name = models.CharField(

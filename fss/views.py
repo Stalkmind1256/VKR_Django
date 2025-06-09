@@ -10,6 +10,7 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from openpyxl.workbook import Workbook
 from .forms import CustomUserForm
+from django.contrib.auth import get_user_model
 from django.db.models import Avg
 from django.db.models import Q
 from .models import Category, Divisions, Suggestion, Status, Notification, Comment, CustomUser, SuggestionRating
@@ -55,31 +56,40 @@ def register(request):
 
 
 def suggestion_list(request):
-    suggestions = Suggestion.objects.select_related('category', 'status').all()
-
-    category = request.GET.get('category')
-    status = request.GET.get('status')
+    # Получаем фильтры из GET-запроса
+    status_filter = request.GET.get('status')
+    category_filter = request.GET.get('category')
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
 
-    if category:
-        suggestions = suggestions.filter(category__name=category)
-    if status:
-        suggestions = suggestions.filter(status__name=status)
+    # Базовый запрос
+    suggestions = Suggestion.objects.select_related('category', 'status').all().order_by('-id')
+
+    # Применяем фильтры
+    if category_filter:
+        suggestions = suggestions.filter(category__name=category_filter)
+    if status_filter:
+        suggestions = suggestions.filter(status__name=status_filter)
     if start_date:
         suggestions = suggestions.filter(date_create__gte=parse_date(start_date))
     if end_date:
         suggestions = suggestions.filter(date_create__lte=parse_date(end_date))
 
-    paginator = Paginator(suggestions, 20)
+    # Пагинация
+    paginator = Paginator(suggestions, 10)
     page = request.GET.get('page')
-
     try:
-        suggestions = paginator.page(page)
+        page_obj = paginator.page(page)
     except (PageNotAnInteger, EmptyPage):
-        suggestions = paginator.page(1)
+        page_obj = paginator.page(1)
 
-    return render(request, 'fss/suggestion_list.html', {'suggestions': suggestions})
+    return render(request, 'fss/suggestion_list.html', {
+        'page_obj': page_obj,
+        'status_filter': status_filter,
+        'category_filter': category_filter,
+        'start_date': start_date,
+        'end_date': end_date,
+    })
 
 
 @login_required
@@ -152,15 +162,28 @@ def edit_suggestion(request, pk):
 @login_required
 def submit_suggestion(request, pk):
     suggestion = get_object_or_404(Suggestion, pk=pk, user=request.user)
+
     if suggestion.status.name == 'draft':
         if suggestion.can_change_status('submitted'):
             suggestion.status = Status.objects.get(name='submitted')
             suggestion.save()
-            messages.success(request, "Статус успешно изменён на 'Отправлено'.")
+
+            # ✅ Уведомление администраторам
+            User = get_user_model()
+            admins = User.objects.filter(is_superuser=True)
+
+            for admin in admins:
+                Notification.objects.create(
+                    user=admin,
+                    message=f"Новое предложение от {request.user.get_full_name() or request.user.username}: «{suggestion.title}»"
+                )
+
+            messages.success(request, "Статус успешно изменён на 'Отправлено'. Администратор уведомлён.")
         else:
             messages.error(request, "Переход из статуса 'Черновик' в 'Отправлено' не разрешён.")
     else:
         messages.error(request, "Статус предложения не 'Черновик', изменение невозможно.")
+
     return redirect('my_suggestions')
 
 
@@ -483,5 +506,4 @@ def rate_suggestion(request):
         })
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
-
 
