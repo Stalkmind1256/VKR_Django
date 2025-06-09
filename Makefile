@@ -14,7 +14,11 @@ build:
 	docker compose exec django python manage.py load_categories
 	docker compose exec django python manage.py load_admin
 
+logs:
+	docker compose logs
 
+stop:
+	docker compose stop
 
 
 
