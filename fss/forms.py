@@ -71,14 +71,16 @@ class SuggestionForm(forms.ModelForm):
         self.fields['category'].queryset = Category.objects.all()
 
 
-class CustomUserForm(forms.ModelForm):
+class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = CustomUser
-        fields = ['first_name', 'last_name', 'patronymic', 'division', 'username']
+        fields = ['first_name', 'last_name', 'patronymic', 'division', 'username', 'password1', 'password2']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'patronymic': forms.TextInput(attrs={'class': 'form-control'}),
             'division': forms.Select(attrs={'class': 'form-select'}),
             'username': forms.TextInput(attrs={'class': 'form-control'}),
+            'password1': forms.PasswordInput(attrs={'class': 'form-control'}),
+            'password2': forms.PasswordInput(attrs={'class': 'form-control'}),
         }

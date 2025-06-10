@@ -9,7 +9,6 @@ from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from openpyxl.workbook import Workbook
-from .forms import CustomUserForm
 from django.contrib.auth import get_user_model
 from django.db.models import Avg
 from django.db.models import Q
@@ -22,7 +21,7 @@ from django.utils.timezone import is_aware
 import openpyxl
 from django.views.decorators.http import require_POST
 from .models import CustomUser
-
+from .forms import CustomUserCreationForm
 from .models import CustomUser
 
 def home(request):
@@ -467,14 +466,17 @@ def delete_user(request, user_id):
 
 
 def edit_user(request, user_id):
-    user = get_object_or_404(CustomUser, id=user_id)
-    if request.method == "POST":
-        form = CustomUserForm(request.POST, instance=user)
+    user = get_object_or_404(CustomUser, pk=user_id)
+
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
-            return redirect('user_management')  # вернуться к списку
+            messages.success(request, 'Пользователь успешно обновлён.')
+            return redirect('user_management')
     else:
-        form = CustomUserForm(instance=user)
+        form = CustomUserCreationForm(instance=user)
+
     return render(request, 'fss/edit_user.html', {'form': form, 'user': user})
 
 @login_required
@@ -507,3 +509,14 @@ def rate_suggestion(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
+def add_user(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()  # автоматически хеширует пароль и сохраняет пользователя
+            messages.success(request, 'Пользователь успешно добавлен.')
+            return redirect('user_management')  # убедись, что такой URL-нейм существует
+    else:
+        form = CustomUserCreationForm()
+
+    return render(request, 'fss/add_user.html', {'form': form})

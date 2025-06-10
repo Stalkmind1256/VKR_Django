@@ -5,15 +5,18 @@
 <div class="container py-4">
   <h3 class="text-success mb-4 fw-bold text-center text-md-start">Управление пользователями</h3>
 
-  <!-- Поиск -->
-  <form method="get" class="mb-3">
-    <div class="input-group">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <a href="{% url 'add_user' %}" class="btn btn-outline-success">
+      <i class="bi bi-plus-circle me-1"></i> Добавить пользователя
+    </a>
+
+    <form method="get" class="input-group" style="max-width: 400px;">
       <input type="text" name="q" value="{{ query }}" class="form-control" placeholder="Поиск по ФИО или подразделению">
       <button class="btn btn-outline-success" type="submit">
         <i class="bi bi-search"></i>
       </button>
-    </div>
-  </form>
+    </form>
+  </div>
 
   <!-- Таблица -->
   <div class="table-responsive">
