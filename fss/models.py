@@ -135,6 +135,10 @@ class Suggestion(models.Model):
         avg = self.ratings.aggregate(avg=Avg('rating'))['avg']
         return round(avg or 0, 1)
 
+    @property
+    def votes_count(self):
+        return self.ratings.count()
+
     def can_change_status(self, new_status_name):
         transitions = {
             'draft': ['submitted'],  # черновик → отправлено
@@ -152,6 +156,8 @@ class Suggestion(models.Model):
         current = self.status.name
         allowed = transitions.get(current, [])
         return new_status_name in allowed
+
+
 
 
 class Comment(models.Model):

@@ -1,12 +1,62 @@
 {% extends 'fss/base.html' %}
 {% block content %}
 <div class="container py-4">
-   <h3 class="mb-4">Редактирование пользователя: {{ user.last_name }} {{ user.first_name }} {{ user.patronymic }}</h3>
+  <h3 class="mb-4">Редактирование пользователя: {{ user.last_name }} {{ user.first_name }} {{ user.patronymic }}</h3>
+
   <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-success">Сохранить</button>
-    <a href="{% url 'user_management' %}" class="btn btn-secondary">Отмена</a>
+    <div class="row g-3">
+
+      <div class="col-md-6">
+        <label for="{{ form.last_name.id_for_label }}" class="form-label">Фамилия</label>
+        {{ form.last_name }}
+        {% for error in form.last_name.errors %}
+          <div class="text-danger small">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="col-md-6">
+        <label for="{{ form.first_name.id_for_label }}" class="form-label">Имя</label>
+        {{ form.first_name }}
+        {% for error in form.first_name.errors %}
+          <div class="text-danger small">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="col-md-6">
+        <label for="{{ form.patronymic.id_for_label }}" class="form-label">Отчество</label>
+        {{ form.patronymic }}
+        {% for error in form.patronymic.errors %}
+          <div class="text-danger small">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="col-md-6">
+        <label for="{{ form.division.id_for_label }}" class="form-label">Подразделение</label>
+        {{ form.division }}
+        {% for error in form.division.errors %}
+          <div class="text-danger small">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="col-md-6">
+        <label for="{{ form.username.id_for_label }}" class="form-label">Логин</label>
+        {{ form.username }}
+        {% for error in form.username.errors %}
+          <div class="text-danger small">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-success">
+        <i class="bi bi-check-circle me-1"></i> Сохранить
+      </button>
+      <a href="{% url 'user_management' %}" class="btn btn-secondary">
+        <i class="bi bi-x-circle me-1"></i> Отмена
+      </a>
+    </div>
   </form>
 </div>
 {% endblock %}

@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Avg
 from django.db.models import Q
 from .models import Category, Divisions, Suggestion, Status, Notification, Comment, CustomUser, SuggestionRating
-from .forms import SuggestionForm, CommentForm
+from .forms import SuggestionForm, CommentForm, CustomUserEditForm
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Count
 from .models import Suggestion
@@ -469,13 +469,13 @@ def edit_user(request, user_id):
     user = get_object_or_404(CustomUser, pk=user_id)
 
     if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST, instance=user)
+        form = CustomUserEditForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Пользователь успешно обновлён.')
             return redirect('user_management')
     else:
-        form = CustomUserCreationForm(instance=user)
+        form = CustomUserEditForm(instance=user)
 
     return render(request, 'fss/edit_user.html', {'form': form, 'user': user})
 
@@ -495,19 +495,30 @@ def rate_suggestion(request):
 
         suggestion = Suggestion.objects.get(pk=suggestion_id)
 
-        # Обновить или создать
-        SuggestionRating.objects.update_or_create(
+        # Проверяем, есть ли уже оценка от пользователя для этого предложения
+        existing_rating = SuggestionRating.objects.filter(user=request.user, suggestion=suggestion).first()
+        if existing_rating is not None:
+            return JsonResponse({
+                'success': False,
+                'error': 'Вы уже голосовали за это предложение и не можете изменить оценку.'
+            }, status=400)
+
+        # Создаем новую оценку
+        SuggestionRating.objects.create(
             user=request.user,
             suggestion=suggestion,
-            defaults={'rating': rating}
+            rating=rating
         )
+
+        avg_rating = SuggestionRating.objects.filter(suggestion=suggestion).aggregate(avg=Avg('rating'))['avg'] or 0.0
 
         return JsonResponse({
             'success': True,
-            'new_avg_rating': SuggestionRating.objects.filter(suggestion=suggestion).aggregate(avg=Avg('rating'))['avg'] or 0.0,
+            'new_avg_rating': avg_rating,
         })
+
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 def add_user(request):
     if request.method == 'POST':
