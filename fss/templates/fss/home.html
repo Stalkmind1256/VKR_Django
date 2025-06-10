@@ -1,5 +1,6 @@
 {% extends 'fss/base.html' %}
 {% load static %}
+{% load custom_filtres%}
 
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -68,7 +69,10 @@
                                 <span>{{ suggestion.date_create|date:"d.m.Y" }}</span>
                             </div>
 
-                            <div class="mb-2 rating" data-suggestion-id="{{ suggestion.id }}" data-current-rating="{{ suggestion.avg_rating|default:0|floatformat:1 }}">
+                            <div class="mb-2 rating"
+     data-suggestion-id="{{ suggestion.id }}"
+    data-current-rating="{{ suggestion.avg_rating|default:0|floatformat:1 }}"
+data-user-rating="{{ user_ratings|get_item:suggestion.id|default:0 }}">
                                 {% for i in "12345" %}
                                     <i class="fa fa-star text-secondary" style="cursor: pointer;"></i>
                                 {% endfor %}
@@ -93,8 +97,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.rating').forEach(ratingBlock => {
         const stars = ratingBlock.querySelectorAll('i');
         const ratingText = ratingBlock.querySelector('small');
+
         let currentRating = parseFloat(ratingBlock.dataset.currentRating) || 0;
-        let voted = false;
+        let userRating = parseInt(ratingBlock.dataset.userRating) || 0;
+        let voted = userRating > 0;
 
         const updateStars = (highlighted) => {
             stars.forEach((star, i) => {
@@ -103,7 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         };
 
-        updateStars(Math.round(currentRating));
+        // Показываем рейтинг пользователя, если он голосовал, иначе — без подсветки (0)
+        updateStars(voted ? userRating : 0);
 
         stars.forEach((star, index) => {
             star.style.cursor = 'pointer';
@@ -113,7 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             star.addEventListener('mouseleave', () => {
-                if (!voted) updateStars(Math.round(currentRating));
+                if (!voted) updateStars(0);
+                else updateStars(userRating);
             });
 
             star.addEventListener('click', () => {
@@ -124,6 +132,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const suggestionId = ratingBlock.dataset.suggestionId;
                 const rating = index + 1;
+
+                // Мгновенно показать выбранный рейтинг
+                updateStars(rating);
 
                 fetch("{% url 'rate_suggestion' %}", {
                     method: "POST",
@@ -136,23 +147,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        currentRating = data.new_avg_rating;
+                        currentRating = parseFloat(data.new_avg_rating);
+                        userRating = rating;
+                        voted = true;
+
                         ratingBlock.dataset.currentRating = currentRating.toFixed(1);
+                        ratingBlock.dataset.userRating = userRating;
+
+                        updateStars(userRating);
+
                         if (ratingText) {
                             ratingText.textContent = `(${currentRating.toFixed(1)}/5, голосов: ${data.votes})`;
                         }
-                        updateStars(Math.round(currentRating));
-                        voted = true;
                     } else {
                         alert(data.error || "Ошибка при отправке оценки");
+                        // Вернуть отображение к состоянию до клика (0 если не голосовал)
+                        updateStars(voted ? userRating : 0);
                     }
                 })
                 .catch(() => {
                     alert('Ошибка соединения с сервером');
+                    updateStars(voted ? userRating : 0);
                 });
             });
         });
     });
 });
 </script>
+
+
 {% endblock %}
