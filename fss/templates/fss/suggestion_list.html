@@ -77,9 +77,13 @@
                   <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-outline-primary btn-sm" title="Подробнее">
                     <i class="bi bi-eye"></i>
                   </a>
-                  <button class="btn btn-outline-success btn-sm btn-approve" data-id="{{ suggestion.id }}" data-title="{{ suggestion.title }}" title="Принять">
-                    <i class="bi bi-check-circle"></i>
-                  </button>
+                  <button class="btn btn-outline-success btn-sm btn-approve"
+                        data-id="{{ suggestion.id }}"
+                        data-title="{{ suggestion.title }}"
+                        data-status="{{ suggestion.status.name }}"
+                        title="Принять">
+                        <i class="bi bi-check-circle"></i>
+                </button>
                   <button class="btn btn-outline-danger btn-sm btn-reject" data-id="{{ suggestion.id }}" data-title="{{ suggestion.title }}" title="Отклонить">
                     <i class="bi bi-x-circle"></i>
                   </button>
