@@ -43,8 +43,8 @@ services:
       - 443:443
     volumes:
       - ./nginx:/etc/nginx/conf.d
-      - static_volume:/usr/src/app/static  # <-- bind the static volume
-      - media_volume:/usr/src/app/media  # <-- bind the media volume
+      - ./static:/usr/src/app/static
+      - ./media:/usr/src/app/media
       - /etc/letsencrypt/live/reform.shspu.ru/fullchain.pem:/etc/letsencrypt/live/reform.shspu.ru/fullchain.pem
       - /etc/letsencrypt/live/reform.shspu.ru/privkey.pem:/etc/letsencrypt/live/reform.shspu.ru/privkey.pem
     depends_on:
