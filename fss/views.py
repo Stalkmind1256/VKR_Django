@@ -9,12 +9,11 @@ from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from openpyxl.workbook import Workbook
-from .forms import CustomUserForm
 from django.contrib.auth import get_user_model
 from django.db.models import Avg
 from django.db.models import Q
 from .models import Category, Divisions, Suggestion, Status, Notification, Comment, CustomUser, SuggestionRating
-from .forms import SuggestionForm, CommentForm
+from .forms import SuggestionForm, CommentForm, CustomUserEditForm
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Count
 from .models import Suggestion
@@ -22,24 +21,27 @@ from django.utils.timezone import is_aware
 import openpyxl
 from django.views.decorators.http import require_POST
 from .models import CustomUser
-
+from .forms import CustomUserCreationForm
 from .models import CustomUser
 
+@login_required
 def home(request):
-    unread_count = 0
-    if request.user.is_authenticated:
-        unread_count = request.user.notifications.filter(is_read=False).count()
+    unread_count = request.user.notifications.filter(is_read=False).count()
 
-    # Получить предложения со статусами "approved" или "completed" с аннотацией средней оценки
     best_suggestions = Suggestion.objects.filter(
         status__name__in=['approved', 'completed']
     ).annotate(
-        avg_rating_value=Avg('ratings__rating')  # 👉 новое имя
-    ).order_by('-date_create')[:5]
+    annotated_avg_rating=Avg('ratings__rating'),
+    annotated_votes_count=Count('ratings')
+).order_by('-date_create')[:5]
+
+    user_ratings_qs = SuggestionRating.objects.filter(user=request.user, suggestion__in=best_suggestions)
+    user_ratings = {r.suggestion_id: r.rating for r in user_ratings_qs}
 
     return render(request, 'fss/home.html', {
         'unread_count': unread_count,
-        'best_suggestions': best_suggestions
+        'best_suggestions': best_suggestions,
+        'user_ratings': user_ratings,
     })
 
 def register(request):
@@ -467,14 +469,17 @@ def delete_user(request, user_id):
 
 
 def edit_user(request, user_id):
-    user = get_object_or_404(CustomUser, id=user_id)
-    if request.method == "POST":
-        form = CustomUserForm(request.POST, instance=user)
+    user = get_object_or_404(CustomUser, pk=user_id)
+
+    if request.method == 'POST':
+        form = CustomUserEditForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
-            return redirect('user_management')  # вернуться к списку
+            messages.success(request, 'Пользователь успешно обновлён.')
+            return redirect('user_management')
     else:
-        form = CustomUserForm(instance=user)
+        form = CustomUserEditForm(instance=user)
+
     return render(request, 'fss/edit_user.html', {'form': form, 'user': user})
 
 @login_required
@@ -493,17 +498,58 @@ def rate_suggestion(request):
 
         suggestion = Suggestion.objects.get(pk=suggestion_id)
 
-        # Обновить или создать
-        SuggestionRating.objects.update_or_create(
+        # Проверяем, голосовал ли уже пользователь
+        existing_rating = SuggestionRating.objects.filter(user=request.user, suggestion=suggestion).first()
+        if existing_rating:
+            return JsonResponse({
+                'success': False,
+                'error': 'Вы уже голосовали за это предложение и не можете изменить оценку.'
+            }, status=400)
+
+        # Создаем новую оценку
+        SuggestionRating.objects.create(
             user=request.user,
             suggestion=suggestion,
-            defaults={'rating': rating}
+            rating=rating
         )
+
+        # Считаем средний рейтинг и количество голосов
+        agg = SuggestionRating.objects.filter(suggestion=suggestion).aggregate(
+            avg=Avg('rating'),
+            votes=Count('id')
+        )
+        avg_rating = agg['avg'] or 0.0
+        votes = agg['votes'] or 0
 
         return JsonResponse({
             'success': True,
-            'new_avg_rating': SuggestionRating.objects.filter(suggestion=suggestion).aggregate(avg=Avg('rating'))['avg'] or 0.0,
+            'new_avg_rating': round(avg_rating, 2),
+            'votes': votes,
         })
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
 
+    except Suggestion.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Предложение не найдено.'
+        }, status=404)
+
+    except (ValueError, TypeError):
+        return JsonResponse({
+            'success': False,
+            'error': 'Некорректные данные.'
+        }, status=400)
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': 'Произошла ошибка на сервере.'}, status=500)
+
+def add_user(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()  # автоматически хеширует пароль и сохраняет пользователя
+            messages.success(request, 'Пользователь успешно добавлен.')
+            return redirect('user_management')  # убедись, что такой URL-нейм существует
+    else:
+        form = CustomUserCreationForm()
+
+    return render(request, 'fss/add_user.html', {'form': form})

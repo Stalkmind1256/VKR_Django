@@ -1,5 +1,6 @@
 {% extends 'fss/base.html' %}
 {% load static %}
+{% load custom_filtres%}
 
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -45,6 +46,9 @@
             {% endfor %}
         </ul>
     {% endif %}
+    <form style="display:none;">
+    {% csrf_token %}
+</form>
 
     <h3 class="mb-4 text-center">Лучшие предложения</h3>
 
@@ -65,11 +69,14 @@
                                 <span>{{ suggestion.date_create|date:"d.m.Y" }}</span>
                             </div>
 
-                            <div class="mb-2 rating" data-suggestion-id="{{ suggestion.id }}" data-current-rating="{{ suggestion.avg_rating|default:0|floatformat:1 }}">
+                            <div class="mb-2 rating"
+     data-suggestion-id="{{ suggestion.id }}"
+    data-current-rating="{{ suggestion.avg_rating|default:0|floatformat:1 }}"
+data-user-rating="{{ user_ratings|get_item:suggestion.id|default:0 }}">
                                 {% for i in "12345" %}
                                     <i class="fa fa-star text-secondary" style="cursor: pointer;"></i>
                                 {% endfor %}
-                                <small class="text-muted">({{ suggestion.avg_rating|default:"0.0"|floatformat:1 }}/5)</small>
+                                <small class="text-muted">( {{ suggestion.avg_rating|default:"0.0"|floatformat:1 }}/5, голосов: {{ suggestion.votes_count|default:0 }} )</small>
                             </div>
 
                             <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-outline-success btn-sm w-100 mt-1">Подробнее</a>
@@ -90,7 +97,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.rating').forEach(ratingBlock => {
         const stars = ratingBlock.querySelectorAll('i');
         const ratingText = ratingBlock.querySelector('small');
+
         let currentRating = parseFloat(ratingBlock.dataset.currentRating) || 0;
+        let userRating = parseInt(ratingBlock.dataset.userRating) || 0;
+        let voted = userRating > 0;
 
         const updateStars = (highlighted) => {
             stars.forEach((star, i) => {
@@ -99,40 +109,71 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         };
 
-        updateStars(Math.round(currentRating));
+        // Показываем рейтинг пользователя, если он голосовал, иначе — без подсветки (0)
+        updateStars(voted ? userRating : 0);
 
         stars.forEach((star, index) => {
-            star.addEventListener('mouseenter', () => updateStars(index + 1));
-            star.addEventListener('mouseleave', () => updateStars(Math.round(currentRating)));
+            star.style.cursor = 'pointer';
+
+            star.addEventListener('mouseenter', () => {
+                if (!voted) updateStars(index + 1);
+            });
+
+            star.addEventListener('mouseleave', () => {
+                if (!voted) updateStars(0);
+                else updateStars(userRating);
+            });
 
             star.addEventListener('click', () => {
+                if (voted) {
+                    alert('Вы уже голосовали за это предложение.');
+                    return;
+                }
+
                 const suggestionId = ratingBlock.dataset.suggestionId;
                 const rating = index + 1;
+
+                // Мгновенно показать выбранный рейтинг
+                updateStars(rating);
 
                 fetch("{% url 'rate_suggestion' %}", {
                     method: "POST",
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
+                        'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
                     },
                     body: JSON.stringify({ suggestion_id: suggestionId, rating: rating })
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        currentRating = data.new_avg_rating;
+                        currentRating = parseFloat(data.new_avg_rating);
+                        userRating = rating;
+                        voted = true;
+
                         ratingBlock.dataset.currentRating = currentRating.toFixed(1);
+                        ratingBlock.dataset.userRating = userRating;
+
+                        updateStars(userRating);
+
                         if (ratingText) {
-                            ratingText.textContent = `(${currentRating.toFixed(1)}/5)`;
+                            ratingText.textContent = `(${currentRating.toFixed(1)}/5, голосов: ${data.votes})`;
                         }
-                        updateStars(Math.round(currentRating));
                     } else {
                         alert(data.error || "Ошибка при отправке оценки");
+                        // Вернуть отображение к состоянию до клика (0 если не голосовал)
+                        updateStars(voted ? userRating : 0);
                     }
+                })
+                .catch(() => {
+                    alert('Ошибка соединения с сервером');
+                    updateStars(voted ? userRating : 0);
                 });
             });
         });
     });
 });
 </script>
+
+
 {% endblock %}

@@ -71,7 +71,27 @@ class SuggestionForm(forms.ModelForm):
         self.fields['category'].queryset = Category.objects.all()
 
 
-class CustomUserForm(forms.ModelForm):
+class CustomUserCreationForm(UserCreationForm):
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'patronymic', 'division', 'username', 'password1', 'password2']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'patronymic': forms.TextInput(attrs={'class': 'form-control'}),
+            'division': forms.Select(attrs={'class': 'form-select'}),
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # вручную добавляем класс form-control к встроенным полям password
+        self.fields['password1'].widget.attrs.update({'class': 'form-control'})
+        self.fields['password2'].widget.attrs.update({'class': 'form-control'})
+
+
+class CustomUserEditForm(forms.ModelForm):
     class Meta:
         model = CustomUser
         fields = ['first_name', 'last_name', 'patronymic', 'division', 'username']
@@ -79,6 +99,6 @@ class CustomUserForm(forms.ModelForm):
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'patronymic': forms.TextInput(attrs={'class': 'form-control'}),
-            'division': forms.Select(attrs={'class': 'form-select'}),
             'username': forms.TextInput(attrs={'class': 'form-control'}),
+            'division': forms.Select(attrs={'class': 'form-select'}),
         }

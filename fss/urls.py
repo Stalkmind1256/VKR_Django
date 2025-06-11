@@ -15,7 +15,7 @@ urlpatterns = [
     path('', redirect_home),
     path('home/', views.home, name='home'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('login/', auth_views.LoginView.as_view(), name='login'),
+    path("login/", auth_views.LoginView.as_view(), name="login"),
     path('list/', views.suggestion_list, name='suggestion_list'),
     path('suggestion/<int:suggestion_id>/', suggestion_detail, name='suggestion_detail'),
     path('register/', views.register, name='register'),
@@ -44,6 +44,6 @@ urlpatterns = [
     path('users/<int:user_id>/edit/', edit_user, name='edit_user'),
     path('notifications/mark_read/', views.mark_notifications_read, name='mark_notifications_read'),
     path('rate-suggestion/', rate_suggestion, name='rate_suggestion'),
-
+    path('users/add/', views.add_user, name='add_user')
    # path('notifications/clear/', views.clear_notifications, name='clear_notifications'),
 ]
