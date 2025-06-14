@@ -1,4 +1,6 @@
 import json
+
+from django.template.loader import render_to_string
 from django.views.decorators.http import require_GET
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import render, get_object_or_404, redirect
@@ -24,11 +26,16 @@ from .models import CustomUser
 from .forms import CustomUserCreationForm
 from .models import CustomUser
 
-@login_required
-def home(request):
-    unread_count = request.user.notifications.filter(is_read=False).count()
 
-    status_filter = request.GET.get('status')  # ← фильтр из URL
+def home(request):
+    unread_count = 0
+    user_ratings = {}
+
+    # Если пользователь авторизован — получаем кол-во непрочитанных уведомлений и его оценки
+    if request.user.is_authenticated:
+        unread_count = request.user.notifications.filter(is_read=False).count()
+
+    status_filter = request.GET.get('status')
 
     best_suggestions = Suggestion.objects.filter(
         status__name__in=['approved', 'preparing', 'in_progress', 'completed']
@@ -42,8 +49,10 @@ def home(request):
         annotated_votes_count=Count('ratings')
     ).order_by('-date_create')[:5]
 
-    user_ratings_qs = SuggestionRating.objects.filter(user=request.user, suggestion__in=best_suggestions)
-    user_ratings = {r.suggestion_id: r.rating for r in user_ratings_qs}
+    # Только если пользователь авторизован — получаем его оценки
+    if request.user.is_authenticated:
+        user_ratings_qs = SuggestionRating.objects.filter(user=request.user, suggestion__in=best_suggestions)
+        user_ratings = {r.suggestion_id: r.rating for r in user_ratings_qs}
 
     return render(request, 'fss/home.html', {
         'unread_count': unread_count,
@@ -585,3 +594,31 @@ def get_allowed_statuses(request, suggestion_id):
     except Suggestion.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Предложение не найдено'}, status=404)
 
+
+def filter_suggestions_ajax(request):
+    status = request.GET.get('status')
+
+    suggestions = Suggestion.objects.filter(
+        status__name__in=['approved', 'preparing', 'in_progress', 'completed']
+    )
+
+    if status:
+        suggestions = suggestions.filter(status__name=status)
+
+    suggestions = suggestions.annotate(
+        annotated_avg_rating=Avg('ratings__rating'),
+        annotated_votes_count=Count('ratings')
+    ).order_by('-date_create')[:5]
+
+    # Получить пользовательские оценки, если пользователь вошёл
+    user_ratings = {}
+    if request.user.is_authenticated:
+        ratings_qs = request.user.suggestionrating_set.filter(suggestion__in=suggestions)
+        user_ratings = {r.suggestion_id: r.rating for r in ratings_qs}
+
+    html = render_to_string('fss/partials/_suggestion_cards.html', {
+        'best_suggestions': suggestions,
+        'user_ratings': user_ratings,
+    })
+
+    return JsonResponse({'html': html})

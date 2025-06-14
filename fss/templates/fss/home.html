@@ -87,128 +87,121 @@
 {% block extra_scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // === Рейтинг ===
-    document.querySelectorAll('.rating').forEach(ratingBlock => {
-        const stars = ratingBlock.querySelectorAll('i');
-        const ratingText = ratingBlock.querySelector('small');
-        let currentRating = parseFloat(ratingBlock.dataset.currentRating) || 0;
-        let userRating = parseInt(ratingBlock.dataset.userRating) || 0;
-        let voted = userRating > 0;
+    const suggestionsContainer = document.getElementById('suggestionsContainer');
+    const statusFilter = document.getElementById('statusFilter');
 
-        const updateStars = (highlighted) => {
-            stars.forEach((star, i) => {
-                star.classList.toggle('text-warning', i < highlighted);
-                star.classList.toggle('text-secondary', i >= highlighted);
+    // === AJAX-фильтрация по статусу ===
+    const applyFilter = () => {
+        const selectedStatus = statusFilter.value;
+
+        // Обновление URL без перезагрузки
+        const url = new URL(window.location.href);
+        if (selectedStatus) {
+            url.searchParams.set('status', selectedStatus);
+        } else {
+            url.searchParams.delete('status');
+        }
+        history.replaceState(null, '', url.toString());
+
+        fetch(`/ajax/filter-suggestions/?status=${selectedStatus}`)
+            .then(response => response.json())
+            .then(data => {
+                suggestionsContainer.innerHTML = data.html;
+                attachRatingHandlers();  // Перепривязать обработчики после подгрузки карточек
+            })
+            .catch(() => {
+                alert('Ошибка загрузки предложений');
             });
-        };
+    };
 
-        updateStars(voted ? userRating : 0);
+    if (statusFilter) {
+        statusFilter.addEventListener('change', applyFilter);
+        // Автозагрузка по параметру из URL
+        const statusFromUrl = new URLSearchParams(window.location.search).get('status');
+        if (statusFromUrl) {
+            statusFilter.value = statusFromUrl;
+            applyFilter();
+        } else {
+            attachRatingHandlers();  // Первичная инициализация рейтинга
+        }
+    }
 
-        stars.forEach((star, index) => {
-            star.style.cursor = 'pointer';
+    // === Обработчики рейтинга ===
+    function attachRatingHandlers() {
+        document.querySelectorAll('.rating').forEach(ratingBlock => {
+            const stars = ratingBlock.querySelectorAll('i');
+            const ratingText = ratingBlock.querySelector('small');
+            let currentRating = parseFloat(ratingBlock.dataset.currentRating) || 0;
+            let userRating = parseInt(ratingBlock.dataset.userRating) || 0;
+            let voted = userRating > 0;
 
-            star.addEventListener('mouseenter', () => {
-                if (!voted) updateStars(index + 1);
-            });
+            const updateStars = (highlighted) => {
+                stars.forEach((star, i) => {
+                    star.classList.toggle('text-warning', i < highlighted);
+                    star.classList.toggle('text-secondary', i >= highlighted);
+                });
+            };
 
-            star.addEventListener('mouseleave', () => {
-                updateStars(voted ? userRating : 0);
-            });
+            updateStars(voted ? userRating : 0);
 
-            star.addEventListener('click', () => {
-                if (voted) {
-                    alert('Вы уже голосовали за это предложение.');
-                    return;
-                }
+            stars.forEach((star, index) => {
+                star.style.cursor = 'pointer';
 
-                const suggestionId = ratingBlock.dataset.suggestionId;
-                const rating = index + 1;
+                star.addEventListener('mouseenter', () => {
+                    if (!voted) updateStars(index + 1);
+                });
 
-                updateStars(rating);
-
-                fetch("{% url 'rate_suggestion' %}", {
-                    method: "POST",
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
-                    },
-                    body: JSON.stringify({ suggestion_id: suggestionId, rating: rating })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        currentRating = parseFloat(data.new_avg_rating);
-                        userRating = rating;
-                        voted = true;
-
-                        ratingBlock.dataset.currentRating = currentRating.toFixed(1);
-                        ratingBlock.dataset.userRating = userRating;
-
-                        updateStars(userRating);
-
-                        if (ratingText) {
-                            ratingText.textContent = `(${currentRating.toFixed(1)}/5, голосов: ${data.votes})`;
-                        }
-                    } else {
-                        alert(data.error || "Ошибка при отправке оценки");
-                        updateStars(voted ? userRating : 0);
-                    }
-                })
-                .catch(() => {
-                    alert('Ошибка соединения с сервером');
+                star.addEventListener('mouseleave', () => {
                     updateStars(voted ? userRating : 0);
+                });
+
+                star.addEventListener('click', () => {
+                    if (voted) {
+                        alert('Вы уже голосовали за это предложение.');
+                        return;
+                    }
+
+                    const suggestionId = ratingBlock.dataset.suggestionId;
+                    const rating = index + 1;
+
+                    fetch("{% url 'rate_suggestion' %}", {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
+                        },
+                        body: JSON.stringify({ suggestion_id: suggestionId, rating: rating })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            currentRating = parseFloat(data.new_avg_rating);
+                            userRating = rating;
+                            voted = true;
+
+                            ratingBlock.dataset.currentRating = currentRating.toFixed(1);
+                            ratingBlock.dataset.userRating = userRating;
+
+                            updateStars(userRating);
+
+                            if (ratingText) {
+                                ratingText.textContent = `(${currentRating.toFixed(1)}/5, голосов: ${data.votes})`;
+                            }
+                        } else {
+                            alert(data.error || "Ошибка при отправке оценки");
+                            updateStars(voted ? userRating : 0);
+                        }
+                    })
+                    .catch(() => {
+                        alert('Ошибка соединения с сервером');
+                        updateStars(voted ? userRating : 0);
+                    });
                 });
             });
         });
-    });
-        // === Фильтрация по статусу ===
-    const statusFilter = document.getElementById('statusFilter');
-    const suggestionCards = document.querySelectorAll('.suggestion-card');
-    const suggestionsContainer = document.getElementById('suggestionsContainer');
-
-
-     // Установим выбранный статус из URL, если есть
-    const urlParams = new URLSearchParams(window.location.search);
-    const statusFromUrl = urlParams.get('status');
-    if (statusFromUrl && statusFilter) {
-        statusFilter.value = statusFromUrl;
-    }
-
-    if (statusFilter && suggestionsContainer) {
-        const noResultsMsg = document.createElement('p');
-        noResultsMsg.id = 'no-results';
-        noResultsMsg.className = 'text-muted text-center mt-4';
-        noResultsMsg.textContent = 'Нет подходящих предложений для отображения.';
-        noResultsMsg.style.display = 'none';
-        suggestionsContainer.after(noResultsMsg);
-
-        const applyFilter = () => {
-            const selectedStatus = statusFilter.value;
-            let visibleCount = 0;
-
-            // Обновление URL без перезагрузки
-            const url = new URL(window.location.href);
-            if (selectedStatus) {
-                url.searchParams.set('status', selectedStatus);
-            } else {
-                url.searchParams.delete('status');
-            }
-            history.replaceState(null, '', url.toString());
-
-            suggestionCards.forEach(card => {
-                const status = card.getAttribute('data-status');
-                const visible = !selectedStatus || status === selectedStatus;
-                card.style.display = visible ? 'flex' : 'none';
-                if (visible) visibleCount++;
-            });
-
-            noResultsMsg.style.display = visibleCount === 0 ? 'block' : 'none';
-        };
-
-        statusFilter.addEventListener('change', applyFilter);
-        applyFilter(); // Применить при загрузке
     }
 });
 </script>
+
 
 {% endblock %}

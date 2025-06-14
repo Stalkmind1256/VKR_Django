@@ -1,0 +1,33 @@
+{% load custom_filtres %}
+{% for suggestion in best_suggestions %}
+    <div class="col d-flex suggestion-card" data-status="{{ suggestion.status }}">
+        <div class="card w-100 shadow-sm border-0 d-flex flex-column">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ suggestion.title }}</h5>
+                <p class="card-text text-muted">
+                    {{ suggestion.description|truncatewords:20 }}
+                </p>
+            </div>
+            <div class="card-footer bg-white border-0 mt-auto">
+                <div class="d-flex justify-content-between small text-muted mb-2">
+                    <span>{{ suggestion.status.get_name_display }}</span>
+                    <span>{{ suggestion.date_create|date:"d.m.Y" }}</span>
+                </div>
+
+                <div class="mb-2 rating"
+                     data-suggestion-id="{{ suggestion.id }}"
+                     data-current-rating="{{ suggestion.avg_rating|default:0|floatformat:1 }}"
+                     data-user-rating="{{ user_ratings|get_item:suggestion.id|default:0 }}">
+                    {% for i in "12345" %}
+                        <i class="fa fa-star text-secondary" style="cursor: pointer;"></i>
+                    {% endfor %}
+                    <small class="text-muted">
+                        ({{ suggestion.avg_rating|default:"0.0"|floatformat:1 }}/5, голосов: {{ suggestion.votes_count|default:0 }})
+                    </small>
+                </div>
+
+                <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-outline-success btn-sm w-100 mt-1">Подробнее</a>
+            </div>
+        </div>
+    </div>
+{% endfor %}

@@ -47,5 +47,5 @@ urlpatterns = [
     path('users/add/', views.add_user, name='add_user'),
    # path('notifications/clear/', views.clear_notifications, name='clear_notifications'),
     path('moderator/get-statuses/<int:suggestion_id>/', views.get_allowed_statuses, name='get_allowed_statuses'),
-
+path('ajax/filter-suggestions/', views.filter_suggestions_ajax, name='filter_suggestions_ajax'),
 ]
