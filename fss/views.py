@@ -1,5 +1,5 @@
 import json
-
+from django.views.decorators.http import require_GET
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.dateparse import parse_date
@@ -28,12 +28,19 @@ from .models import CustomUser
 def home(request):
     unread_count = request.user.notifications.filter(is_read=False).count()
 
+    status_filter = request.GET.get('status')  # ← фильтр из URL
+
     best_suggestions = Suggestion.objects.filter(
-        status__name__in=['approved', 'completed']
-    ).annotate(
-    annotated_avg_rating=Avg('ratings__rating'),
-    annotated_votes_count=Count('ratings')
-).order_by('-date_create')[:5]
+        status__name__in=['approved', 'preparing', 'in_progress', 'completed']
+    )
+
+    if status_filter:
+        best_suggestions = best_suggestions.filter(status__name=status_filter)
+
+    best_suggestions = best_suggestions.annotate(
+        annotated_avg_rating=Avg('ratings__rating'),
+        annotated_votes_count=Count('ratings')
+    ).order_by('-date_create')[:5]
 
     user_ratings_qs = SuggestionRating.objects.filter(user=request.user, suggestion__in=best_suggestions)
     user_ratings = {r.suggestion_id: r.rating for r in user_ratings_qs}
@@ -42,8 +49,8 @@ def home(request):
         'unread_count': unread_count,
         'best_suggestions': best_suggestions,
         'user_ratings': user_ratings,
+        'status_filter': status_filter,
     })
-
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -556,3 +563,25 @@ def add_user(request):
         form = CustomUserCreationForm()
 
     return render(request, 'fss/add_user.html', {'form': form})
+
+# Возможные переходы между статусами
+STATUS_FLOW = {
+    'submitted': ['under_review'],
+    'under_review': ['approved'],
+    'approved': ['preparing'],
+    'preparing': ['in_progress'],
+    'in_progress': ['completed'],
+}
+
+@login_required
+@require_GET
+def get_allowed_statuses(request, suggestion_id):
+    try:
+        suggestion = Suggestion.objects.select_related('status').get(pk=suggestion_id)
+        current_status = suggestion.status.name
+        allowed = STATUS_FLOW.get(current_status, [])
+
+        return JsonResponse({'success': True, 'statuses': allowed})
+    except Suggestion.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Предложение не найдено'}, status=404)
+

@@ -217,12 +217,46 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.querySelectorAll(".btn-approve").forEach(button => {
-        button.addEventListener("click", () => {
-            document.getElementById("approve_suggestion_id").value = button.dataset.id;
-            document.getElementById("approveModalLabel").textContent = `Принять: ${button.dataset.title}`;
-            approveModal.show();
-        });
+    button.addEventListener("click", () => {
+        const suggestionId = button.dataset.id;
+        const title = button.dataset.title;
+
+        fetch(`/moderator/get-statuses/${suggestionId}/`)
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    alert("Не удалось получить список допустимых статусов.");
+                    return;
+                }
+
+                const select = document.querySelector("#approveForm select[name='status']");
+                select.innerHTML = "";
+
+                const statusLabels = {
+                    'under_review': 'На рассмотрении',
+                    'approved': 'Подтверждено ',
+                    'preparing': 'Готовится к реализации',
+                    'in_progress': 'Реализуется',
+                    'completed': 'Реализовано'
+                };
+
+                data.statuses.forEach(status => {
+                    const opt = document.createElement("option");
+                    opt.value = status;
+                    opt.textContent = statusLabels[status] || status;
+                    select.appendChild(opt);
+                });
+
+                document.getElementById("approve_suggestion_id").value = suggestionId;
+                document.getElementById("approveModalLabel").textContent = `Принять: ${title}`;
+                approveModal.show();
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Ошибка при загрузке статусов.");
+            });
     });
+});
 
     // Обработка формы отклонения
     document.getElementById("rejectForm").addEventListener("submit", e => {
