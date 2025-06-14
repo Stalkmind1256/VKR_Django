@@ -1,7 +1,7 @@
 {% extends 'fss/base.html' %}
 {% block content %}
 <div class="container py-4">
-  <h3 class="mb-4">Редактирование пользователя: {{ user.last_name }} {{ user.first_name }} {{ user.patronymic }}</h3>
+  <h3 class="mb-4">Редактирование пользователя: {{ edited_user.last_name }} {{ edited_user.first_name }} {{ edited_user.patronymic }}</h3>
 
   <form method="post">
     {% csrf_token %}

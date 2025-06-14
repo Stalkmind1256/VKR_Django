@@ -469,18 +469,21 @@ def delete_user(request, user_id):
 
 
 def edit_user(request, user_id):
-    user = get_object_or_404(CustomUser, pk=user_id)
+    user_obj = get_object_or_404(CustomUser, pk=user_id)
 
     if request.method == 'POST':
-        form = CustomUserEditForm(request.POST, instance=user)
+        form = CustomUserEditForm(request.POST, instance=user_obj)
         if form.is_valid():
             form.save()
             messages.success(request, 'Пользователь успешно обновлён.')
             return redirect('user_management')
     else:
-        form = CustomUserEditForm(instance=user)
+        form = CustomUserEditForm(instance=user_obj)
 
-    return render(request, 'fss/edit_user.html', {'form': form, 'user': user})
+    return render(request, 'fss/edit_user.html', {
+        'form': form,
+        'edited_user': user_obj  # ← теперь под другим именем
+    })
 
 @login_required
 @require_POST
