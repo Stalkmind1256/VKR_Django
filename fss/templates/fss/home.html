@@ -1,38 +1,20 @@
 {% extends 'fss/base.html' %}
 {% load static %}
-{% load custom_filtres%}
+{% load custom_filtres %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-    .card-title {
-        font-size: 1.2rem;
-    }
-    .rating i {
-        font-size: 1.3rem;
-        transition: color 0.2s;
-    }
-    .card-text {
-        font-size: 0.95rem;
-    }
+    .card-title { font-size: 1.2rem; }
+    .rating i { font-size: 1.3rem; transition: color 0.2s; }
+    .card-text { font-size: 0.95rem; }
 
     @media (max-width: 575.98px) {
-        .card-title {
-            font-size: 1.1rem;
-        }
-        .card-text {
-            font-size: 0.9rem;
-        }
-        .rating i {
-            font-size: 1.4rem;
-        }
-        .btn {
-            font-size: 1rem;
-            padding: 0.6rem;
-        }
-        .card-footer .text-muted {
-            font-size: 0.8rem;
-        }
+        .card-title { font-size: 1.1rem; }
+        .card-text { font-size: 0.9rem; }
+        .rating i { font-size: 1.4rem; }
+        .btn { font-size: 1rem; padding: 0.6rem; }
+        .card-footer .text-muted { font-size: 0.8rem; }
     }
 </style>
 {% endblock %}
@@ -46,17 +28,26 @@
             {% endfor %}
         </ul>
     {% endif %}
-    <form style="display:none;">
-    {% csrf_token %}
-</form>
+    <form style="display:none;">{% csrf_token %}</form>
 
     <h3 class="mb-4 text-center">Лучшие предложения</h3>
 
+    <!-- Фильтр по статусу -->
+    <div class="mb-4" style="max-width: 300px; margin-left: auto;">
+       <select id="statusFilter" class="form-select form-select-sm w-auto mx-auto">
+    <option value="">Все статусы</option>
+    <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Подтверждено</option>
+    <option value="preparing" {% if status_filter == 'preparing' %}selected{% endif %}>Готовится к реализации</option>
+    <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>Реализуется</option>
+    <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Реализовано</option>
+</select>
+    </div>
+
     {% if best_suggestions %}
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
+        <div id="suggestionsContainer" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
             {% for suggestion in best_suggestions %}
-                <div class="col d-flex">
-                    <div class="card w-100 h-100 shadow-sm border-0 d-flex flex-column">
+                <div class="col d-flex suggestion-card" data-status="{{ suggestion.status }}">
+                    <div class="card w-100 shadow-sm border-0 d-flex flex-column">
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title">{{ suggestion.title }}</h5>
                             <p class="card-text text-muted">
@@ -70,13 +61,15 @@
                             </div>
 
                             <div class="mb-2 rating"
-     data-suggestion-id="{{ suggestion.id }}"
-    data-current-rating="{{ suggestion.avg_rating|default:0|floatformat:1 }}"
-data-user-rating="{{ user_ratings|get_item:suggestion.id|default:0 }}">
+                                 data-suggestion-id="{{ suggestion.id }}"
+                                 data-current-rating="{{ suggestion.avg_rating|default:0|floatformat:1 }}"
+                                 data-user-rating="{{ user_ratings|get_item:suggestion.id|default:0 }}">
                                 {% for i in "12345" %}
                                     <i class="fa fa-star text-secondary" style="cursor: pointer;"></i>
                                 {% endfor %}
-                                <small class="text-muted">( {{ suggestion.avg_rating|default:"0.0"|floatformat:1 }}/5, голосов: {{ suggestion.votes_count|default:0 }} )</small>
+                                <small class="text-muted">
+                                    ({{ suggestion.avg_rating|default:"0.0"|floatformat:1 }}/5, голосов: {{ suggestion.votes_count|default:0 }})
+                                </small>
                             </div>
 
                             <a href="{% url 'suggestion_detail' suggestion.id %}" class="btn btn-outline-success btn-sm w-100 mt-1">Подробнее</a>
@@ -94,84 +87,119 @@ data-user-rating="{{ user_ratings|get_item:suggestion.id|default:0 }}">
 {% block extra_scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.rating').forEach(ratingBlock => {
-        const stars = ratingBlock.querySelectorAll('i');
-        const ratingText = ratingBlock.querySelector('small');
+    const suggestionsContainer = document.getElementById('suggestionsContainer');
+    const statusFilter = document.getElementById('statusFilter');
 
-        let currentRating = parseFloat(ratingBlock.dataset.currentRating) || 0;
-        let userRating = parseInt(ratingBlock.dataset.userRating) || 0;
-        let voted = userRating > 0;
+    // === AJAX-фильтрация по статусу ===
+    const applyFilter = () => {
+        const selectedStatus = statusFilter.value;
 
-        const updateStars = (highlighted) => {
-            stars.forEach((star, i) => {
-                star.classList.toggle('text-warning', i < highlighted);
-                star.classList.toggle('text-secondary', i >= highlighted);
+        // Обновление URL без перезагрузки
+        const url = new URL(window.location.href);
+        if (selectedStatus) {
+            url.searchParams.set('status', selectedStatus);
+        } else {
+            url.searchParams.delete('status');
+        }
+        history.replaceState(null, '', url.toString());
+
+        fetch(`/ajax/filter-suggestions/?status=${selectedStatus}`)
+            .then(response => response.json())
+            .then(data => {
+                suggestionsContainer.innerHTML = data.html;
+                attachRatingHandlers();  // Перепривязать обработчики после подгрузки карточек
+            })
+            .catch(() => {
+                alert('Ошибка загрузки предложений');
             });
-        };
+    };
 
-        // Показываем рейтинг пользователя, если он голосовал, иначе — без подсветки (0)
-        updateStars(voted ? userRating : 0);
+    if (statusFilter) {
+        statusFilter.addEventListener('change', applyFilter);
+        // Автозагрузка по параметру из URL
+        const statusFromUrl = new URLSearchParams(window.location.search).get('status');
+        if (statusFromUrl) {
+            statusFilter.value = statusFromUrl;
+            applyFilter();
+        } else {
+            attachRatingHandlers();  // Первичная инициализация рейтинга
+        }
+    }
 
-        stars.forEach((star, index) => {
-            star.style.cursor = 'pointer';
+    // === Обработчики рейтинга ===
+    function attachRatingHandlers() {
+        document.querySelectorAll('.rating').forEach(ratingBlock => {
+            const stars = ratingBlock.querySelectorAll('i');
+            const ratingText = ratingBlock.querySelector('small');
+            let currentRating = parseFloat(ratingBlock.dataset.currentRating) || 0;
+            let userRating = parseInt(ratingBlock.dataset.userRating) || 0;
+            let voted = userRating > 0;
 
-            star.addEventListener('mouseenter', () => {
-                if (!voted) updateStars(index + 1);
-            });
+            const updateStars = (highlighted) => {
+                stars.forEach((star, i) => {
+                    star.classList.toggle('text-warning', i < highlighted);
+                    star.classList.toggle('text-secondary', i >= highlighted);
+                });
+            };
 
-            star.addEventListener('mouseleave', () => {
-                if (!voted) updateStars(0);
-                else updateStars(userRating);
-            });
+            updateStars(voted ? userRating : 0);
 
-            star.addEventListener('click', () => {
-                if (voted) {
-                    alert('Вы уже голосовали за это предложение.');
-                    return;
-                }
+            stars.forEach((star, index) => {
+                star.style.cursor = 'pointer';
 
-                const suggestionId = ratingBlock.dataset.suggestionId;
-                const rating = index + 1;
+                star.addEventListener('mouseenter', () => {
+                    if (!voted) updateStars(index + 1);
+                });
 
-                // Мгновенно показать выбранный рейтинг
-                updateStars(rating);
-
-                fetch("{% url 'rate_suggestion' %}", {
-                    method: "POST",
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
-                    },
-                    body: JSON.stringify({ suggestion_id: suggestionId, rating: rating })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        currentRating = parseFloat(data.new_avg_rating);
-                        userRating = rating;
-                        voted = true;
-
-                        ratingBlock.dataset.currentRating = currentRating.toFixed(1);
-                        ratingBlock.dataset.userRating = userRating;
-
-                        updateStars(userRating);
-
-                        if (ratingText) {
-                            ratingText.textContent = `(${currentRating.toFixed(1)}/5, голосов: ${data.votes})`;
-                        }
-                    } else {
-                        alert(data.error || "Ошибка при отправке оценки");
-                        // Вернуть отображение к состоянию до клика (0 если не голосовал)
-                        updateStars(voted ? userRating : 0);
-                    }
-                })
-                .catch(() => {
-                    alert('Ошибка соединения с сервером');
+                star.addEventListener('mouseleave', () => {
                     updateStars(voted ? userRating : 0);
+                });
+
+                star.addEventListener('click', () => {
+                    if (voted) {
+                        alert('Вы уже голосовали за это предложение.');
+                        return;
+                    }
+
+                    const suggestionId = ratingBlock.dataset.suggestionId;
+                    const rating = index + 1;
+
+                    fetch("{% url 'rate_suggestion' %}", {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
+                        },
+                        body: JSON.stringify({ suggestion_id: suggestionId, rating: rating })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            currentRating = parseFloat(data.new_avg_rating);
+                            userRating = rating;
+                            voted = true;
+
+                            ratingBlock.dataset.currentRating = currentRating.toFixed(1);
+                            ratingBlock.dataset.userRating = userRating;
+
+                            updateStars(userRating);
+
+                            if (ratingText) {
+                                ratingText.textContent = `(${currentRating.toFixed(1)}/5, голосов: ${data.votes})`;
+                            }
+                        } else {
+                            alert(data.error || "Ошибка при отправке оценки");
+                            updateStars(voted ? userRating : 0);
+                        }
+                    })
+                    .catch(() => {
+                        alert('Ошибка соединения с сервером');
+                        updateStars(voted ? userRating : 0);
+                    });
                 });
             });
         });
-    });
+    }
 });
 </script>
 
