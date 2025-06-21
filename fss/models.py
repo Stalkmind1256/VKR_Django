@@ -6,17 +6,8 @@ from django.contrib.auth import get_user_model
 
 
 class Divisions(models.Model):
-    DIVISIONS_CHOICES = [
-        ('technopark', 'Технопарк'),
-        ('deanery', 'Деканат'),
-        ('rectorate', 'Ректорат'),
-        ('uvc', 'Учебно-вычислительный центр (УВЦ)'),
-        ('administration', 'Администрация'),
-    ]
-
     name = models.CharField(
         max_length=100,
-        choices=DIVISIONS_CHOICES,
         unique=True,
         verbose_name="Название подразделения"
     )
@@ -27,7 +18,7 @@ class Divisions(models.Model):
         ordering = ["name"]
 
     def __str__(self):
-        return self.get_name_display()
+        return self.name
 
 
 class CustomUser(AbstractUser):
