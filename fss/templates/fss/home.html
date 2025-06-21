@@ -86,6 +86,8 @@
 
 {% block extra_scripts %}
 <script>
+const isAuthenticated = {{ request.user.is_authenticated|yesno:"true,false" }};
+
 document.addEventListener('DOMContentLoaded', () => {
     const suggestionsContainer = document.getElementById('suggestionsContainer');
     const statusFilter = document.getElementById('statusFilter');
@@ -94,7 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const applyFilter = () => {
         const selectedStatus = statusFilter.value;
 
-        // Обновление URL без перезагрузки
         const url = new URL(window.location.href);
         if (selectedStatus) {
             url.searchParams.set('status', selectedStatus);
@@ -107,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(response => response.json())
             .then(data => {
                 suggestionsContainer.innerHTML = data.html;
-                attachRatingHandlers();  // Перепривязать обработчики после подгрузки карточек
+                attachRatingHandlers();
             })
             .catch(() => {
                 alert('Ошибка загрузки предложений');
@@ -116,13 +117,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (statusFilter) {
         statusFilter.addEventListener('change', applyFilter);
-        // Автозагрузка по параметру из URL
         const statusFromUrl = new URLSearchParams(window.location.search).get('status');
         if (statusFromUrl) {
             statusFilter.value = statusFromUrl;
             applyFilter();
         } else {
-            attachRatingHandlers();  // Первичная инициализация рейтинга
+            attachRatingHandlers();
         }
     }
 
@@ -156,6 +156,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 star.addEventListener('click', () => {
+                    if (!isAuthenticated) {
+                        const nextUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                        window.location.href = "{% url 'login' %}?next=" + nextUrl;
+                        return;
+                    }
+
                     if (voted) {
                         alert('Вы уже голосовали за это предложение.');
                         return;
