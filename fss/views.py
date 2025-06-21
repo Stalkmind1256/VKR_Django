@@ -1,5 +1,6 @@
 import json
-
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import HttpResponseForbidden
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_GET
 from django.contrib.auth.hashers import make_password
@@ -26,6 +27,8 @@ from .models import CustomUser
 from .forms import CustomUserCreationForm
 from .models import CustomUser
 
+def is_superuser(user):
+    return user.is_superuser
 
 def home(request):
     unread_count = 0
@@ -74,6 +77,8 @@ def register(request):
 
 
 def suggestion_list(request):
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("Доступ запрещен 403")
     # Получаем фильтры из GET-запроса
     status_filter = request.GET.get('status')
     category_filter = request.GET.get('category')
@@ -375,6 +380,8 @@ def suggestions_stats_api(request):
     return JsonResponse(data)
 
 def stats(request):
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("Доступ запрещен 403")
 
     return render(request, 'fss/stats.html')
 
@@ -425,6 +432,8 @@ def export_suggestions_excel(request):
 
 
 def import_users(request):
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("Доступ запрещен 403")
     if request.method == 'POST':
         excel_file = request.FILES['file']
         wb = openpyxl.load_workbook(excel_file)
@@ -451,6 +460,8 @@ def import_users(request):
     return render(request, 'fss/import_users.html')
 
 def user_management(request):
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("Доступ запрещен 403")
     query = request.GET.get("q", "")
     users = CustomUser.objects.all()
 
@@ -561,7 +572,10 @@ def rate_suggestion(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': 'Произошла ошибка на сервере.'}, status=500)
 
+
 def add_user(request):
+    if not request.user.is_superuser:
+        return HttpResponseForbidden("Доступ запрещен 403")
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
