@@ -3,8 +3,10 @@ from django.db import transaction
 from fss.models import Category
 
 CATEGORIES = [
-    "technology",
-    "education",
+    "Технологии",
+    "Образование",
+    "Наука",
+    "Инфраструктура",
 ]
 
 class Command(BaseCommand):
@@ -15,5 +17,5 @@ class Command(BaseCommand):
         for category_name in CATEGORIES:
             obj, created = Category.objects.get_or_create(name=category_name)
             action = "Создана" if created else "Существует"
-            self.stdout.write(f"{action}: {obj.name} — {dict(obj.CATEGORY_CHOICES).get(obj.name)}")
+            self.stdout.write(f"{action}: {obj.name}")
         self.stdout.write(self.style.SUCCESS("✅ Все категории успешно загружены."))

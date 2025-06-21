@@ -69,13 +69,9 @@ class Status(models.Model):
 
 
 class Category(models.Model):
-    CATEGORY_CHOICES = [
-        ('technology', 'Технологии'),
-        ('education', 'Образование'),
-    ]
     name = models.CharField(
         max_length=100,
-        choices=CATEGORY_CHOICES,
+        unique=True,  # лучше добавить уникальность
         verbose_name='Название категории',
     )
 
@@ -85,7 +81,7 @@ class Category(models.Model):
         ordering = ['name']
 
     def __str__(self):
-        return self.get_name_display()
+        return self.name
 
 
 class Suggestion(models.Model):

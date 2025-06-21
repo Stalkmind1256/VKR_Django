@@ -11,7 +11,7 @@ class CategoryAdmin(ModelAdmin):
     readonly_fields = ('id',)
     fieldsets = (
         ('Основная информация', {
-            'fields': ('name',)
+            'fields': ('name',)  # Поле name — обычное текстовое поле
         }),
     )
 
