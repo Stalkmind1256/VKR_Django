@@ -131,7 +131,7 @@ class Suggestion(models.Model):
             'draft': ['submitted'],  # черновик → отправлено
             'submitted': ['under_review', 'archived', 'draft'],
             # отправлено → на рассмотрении, архив или возврат в черновик
-            'under_review': ['approved', 'rejected'],  # на рассмотрении → подтверждено или отклонено
+             'under_review': ['approved', 'rejected', 'archived'],  # на рассмотрении → подтверждено или отклонено
             'approved': ['preparing'],  # подтверждено → готовится к реализации
             'preparing': ['in_progress'],  # готовится → реализуется
             'in_progress': ['completed'],  # реализуется → реализовано
