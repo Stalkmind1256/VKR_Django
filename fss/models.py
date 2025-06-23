@@ -5,6 +5,8 @@ from django.db.models import Avg  # 💡 Добавлен для avg_rating prop
 from django.contrib.auth import get_user_model
 
 
+
+
 class Divisions(models.Model):
     name = models.CharField(
         max_length=100,
@@ -20,6 +22,21 @@ class Divisions(models.Model):
     def __str__(self):
         return self.name
 
+class Role(models.Model):
+    name = models.CharField(
+        max_length=50,
+        unique=True,
+        verbose_name="Роль"
+    )
+
+    class Meta:
+        verbose_name = "Роль"
+        verbose_name_plural = "Роли"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
 
 class CustomUser(AbstractUser):
     patronymic = models.CharField("Отчество", max_length=150, blank=True, null=True)
@@ -29,6 +46,13 @@ class CustomUser(AbstractUser):
         null=True,
         blank=True,
         verbose_name="Подразделение"
+    )
+    role = models.ForeignKey(
+        Role,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Роль"
     )
 
 
@@ -131,7 +155,7 @@ class Suggestion(models.Model):
             'draft': ['submitted'],  # черновик → отправлено
             'submitted': ['under_review', 'archived', 'draft'],
             # отправлено → на рассмотрении, архив или возврат в черновик
-            'under_review': ['approved', 'rejected'],  # на рассмотрении → подтверждено или отклонено
+             'under_review': ['approved', 'rejected', 'archived'],  # на рассмотрении → подтверждено или отклонено
             'approved': ['preparing'],  # подтверждено → готовится к реализации
             'preparing': ['in_progress'],  # готовится → реализуется
             'in_progress': ['completed'],  # реализуется → реализовано

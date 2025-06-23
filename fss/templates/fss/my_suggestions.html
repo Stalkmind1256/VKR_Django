@@ -24,15 +24,17 @@
                             <p class="mb-3">{{ suggestion.description|truncatewords:25 }}</p>
                             <small class="text-muted">
                                 Статус:
-                                <span class="badge
+                                <span
+                                  class="badge
                                     {% if suggestion.status.name == 'draft' %} bg-secondary
                                     {% elif suggestion.status.name == 'submitted' %} bg-primary
                                     {% elif suggestion.status.name == 'approved' %} bg-success
                                     {% elif suggestion.status.name == 'rejected' %} bg-danger
                                     {% elif suggestion.status.name == 'in_progress' %} bg-warning
                                     {% elif suggestion.status.name == 'completed' %} bg-success
-                                    {% else %} bg-light text-dark {% endif %}">
-                                    {{ suggestion.status.get_name_display }}
+                                    {% else %} bg-light text-dark {% endif %}"
+                                  data-id="{{ suggestion.id }}">
+                                  {{ suggestion.status.get_name_display }}
                                 </span>
                             </small>
                         </div>
@@ -84,4 +86,32 @@
         </div>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function updateStatuses() {
+        fetch("{% url 'suggestions_statuses' %}")
+            .then(response => response.json())
+            .then(data => {
+                for (const id in data) {
+                    const badge = document.querySelector(`.badge[data-id='${id}']`);
+                    if (badge) {
+                        const newStatus = data[id];
+                        // Обновляем текст, если он изменился
+                        if (badge.textContent.trim() !== newStatus.status_display) {
+                            badge.textContent = newStatus.status_display;
+                            badge.className = 'badge ' + newStatus.status_class;
+                        }
+                    }
+                }
+            })
+            .catch(err => console.error('Ошибка при обновлении статусов:', err));
+    }
+
+    // Обновляем статусы сразу и затем каждые 10 секунд
+    updateStatuses();
+    setInterval(updateStatuses, 10000);
+});
+</script>
+
 {% endblock %}

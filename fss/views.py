@@ -590,7 +590,7 @@ def add_user(request):
 # Возможные переходы между статусами
 STATUS_FLOW = {
     'submitted': ['under_review'],
-    'under_review': ['approved'],
+    'under_review': ['approved', 'archived'],
     'approved': ['preparing'],
     'preparing': ['in_progress'],
     'in_progress': ['completed'],
@@ -636,3 +636,25 @@ def filter_suggestions_ajax(request):
     })
 
     return JsonResponse({'html': html})
+
+@login_required
+def suggestions_statuses(request):
+    user = request.user
+    suggestions = user.suggestions.all()
+
+    status_class_map = {
+        'draft': 'bg-secondary',
+        'submitted': 'bg-primary',
+        'approved': 'bg-success',
+        'rejected': 'bg-danger',
+        'in_progress': 'bg-warning',
+        'completed': 'bg-success',
+    }
+
+    data = {}
+    for s in suggestions:
+        data[s.id] = {
+            'status_display': s.status.get_name_display(),
+            'status_class': status_class_map.get(s.status.name, 'bg-light text-dark'),
+        }
+    return JsonResponse(data)
