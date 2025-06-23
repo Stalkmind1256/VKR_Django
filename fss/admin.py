@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import Status, Category, Suggestion, Divisions, CustomUser,Role
+from .models import Status, Category, Suggestion, Divisions, CustomUser,Role, Comment
 
 @admin.register(Role)
 class RoleAdmin(admin.ModelAdmin):
@@ -74,3 +74,21 @@ class CustomUserAdmin(UserAdmin):
             'fields': ('username', 'first_name', 'patronymic', 'last_name', 'division', 'role', 'password1', 'password2'),
         }),
     )
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'suggestion', 'user', 'short_text', 'created_at')
+    list_filter = ('created_at', 'user')
+    search_fields = ('text', 'user__username', 'suggestion__title')
+    autocomplete_fields = ('suggestion', 'user')
+    readonly_fields = ('created_at',)
+    date_hierarchy = 'created_at'
+
+    def short_text(self, obj):
+        """
+        Возвращает первые 75 символов текста комментария
+        (добавляет многоточие, если строка длиннее).
+        """
+        return f"{obj.text[:75]}…" if len(obj.text) > 75 else obj.text
+
+    short_text.short_description = 'Текст'
